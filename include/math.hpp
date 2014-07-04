@@ -1,13 +1,11 @@
-# pragma once
+#ifndef MATH_HPP
+#define MATH_HPP
 
-# include <eigen3/Eigen/Core>
-# include <eigen3/Eigen/Dense>
+#include <dake/math/matrix.hpp>
 
-# include <cmath>
+#include <cmath>
 
-typedef double distance_type;
+typedef float distance_type;
+typedef dake::math::vec3 vec3_type;
 
-template< typename T, unsigned int Dim >
-using vec_type = Eigen::Matrix< T, Dim, 1 >;
-
-typedef vec_type< double, 3 > vec3_type;
+#endif
