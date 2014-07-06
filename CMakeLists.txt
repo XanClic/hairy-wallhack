@@ -89,11 +89,13 @@ add_executable( audiophile src/main.cpp
                            src/view/al_renderer.cpp
                            # flappy_box
                            src/flappy_box/model/box.cpp
+                           src/flappy_box/model/game_over.cpp
                            src/flappy_box/model/paddle.cpp
                            src/flappy_box/model/world.cpp
-                           src/flappy_box/model/game_over.cpp
+                           src/flappy_box/controller/box_object_logic.cpp
                            src/flappy_box/controller/flappy_engine.cpp 
-                           src/flappy_box/controller/box_object_logic.cpp 
+                           src/flappy_box/controller/paddle_logic.cpp
+                           src/flappy_box/controller/world_logic.cpp
                            src/flappy_box/view/box_al_audible.cpp
                            src/flappy_box/view/box_gl_drawable.cpp
 

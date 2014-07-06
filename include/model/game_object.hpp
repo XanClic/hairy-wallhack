@@ -32,13 +32,11 @@ namespace model
       // dynamic flag can be used to mark object as static/dynamic in the game.
       // (this can be used as a hint to the game logic, indicating if object needs to be "advanced")
       bool isDynamic() const { return _dynamic_flag; }
-      
-// ATTENTION: NEW CODE!
-      bool isAlive()  const { return _alive_flag; }
-      void setAlive( bool flag ) { _alive_flag = flag; }
-//
 
-      const std::string& name() const { return _name; }
+      bool &alive(void) { return _alive_flag; }
+      bool alive(void) const { return _alive_flag; }
+
+      const std::string &name(void) const { return _name; }
 
     private:
 
@@ -46,12 +44,7 @@ namespace model
       std::map< std::type_index, std::shared_ptr< Data > > _data; 
       std::string _name;
 
-// ATTENTION: NEW CODE!
       bool  _alive_flag;
-//
-      
-      
-      
   }; // GameObject
 
 } // model::

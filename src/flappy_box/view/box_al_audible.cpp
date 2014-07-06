@@ -24,7 +24,7 @@ BoxAlAudible::BoxAlAudible( std::shared_ptr< ::flappy_box::model::Box > const& b
 
 void BoxAlAudible::auralize( ::view::AlRenderer& renderer )
 {
-  if (  !_model->isAlive() )
+  if (  !_model->alive() )
   {
     // normalized x-coordinate of box
     double x_pos = _model->position()[0] / _model->maxPosition()[0];

@@ -27,7 +27,7 @@ namespace flappy_box
 
       private:
         int _playerPoints   = 0;
-        int _remainingLives = 3;
+        int _remainingLives = 5;
     };
   }
 }
