@@ -5,7 +5,8 @@
 
 #include <cmath>
 
-typedef float distance_type;
+typedef float scalar_type;
+typedef scalar_type distance_type;
 typedef dake::math::vec3 vec3_type;
 
 #endif
