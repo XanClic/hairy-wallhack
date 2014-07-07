@@ -46,7 +46,7 @@ namespace flappy_box
         scalar_type           _angle = 0.f;
         scalar_type            _size = 1.f; // same size in every direction
         vec3_type          _position = vec3_type(0.f, 0.f, 0.f);
-        vec3_type       _maxPosition = vec3_type(1.f, HUGE_VALF, 1.f);
+        vec3_type       _maxPosition = vec3_type(1.f, 1.f, HUGE_VALF);
         vec3_type          _velocity = vec3_type(0.f, 0.f, 0.f);
         vec3_type      _acceleration = vec3_type(0.f, 0.f, 0.f);
         scalar_type _rotAcceleration = 0.f; // only in y-direction

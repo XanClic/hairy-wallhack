@@ -71,6 +71,11 @@ ExternalProject_Get_Property(dake binary_dir)
 include_directories(${binary_dir}/include)
 link_directories(${binary_dir})
 
+find_package(PNG REQUIRED)
+include_directories(${PNG_INCLUDE_DIRS})
+link_directories(${PNG_LIBRARY_DIRS})
+add_definitions(${PNG_DEFINITIONS})
+
 #########################################################
 # EXECUTABLE AUDIOphile
 #########################################################
@@ -98,11 +103,12 @@ add_executable( audiophile src/main.cpp
                            src/flappy_box/controller/world_logic.cpp
                            src/flappy_box/view/box_al_audible.cpp
                            src/flappy_box/view/box_gl_drawable.cpp
+                           src/flappy_box/view/world_gl_drawable.cpp
 
                            # sound management
                            src/sound_provider.cpp
               )
 
-target_link_libraries( audiophile libdake.a ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${OPENAL_LIBRARY} ${ALUT_LIBRARY} ${GLEW_LIBRARIES} )
+target_link_libraries( audiophile -ldake ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${OPENAL_LIBRARY} ${ALUT_LIBRARY} ${GLEW_LIBRARIES} ${PNG_LIBRARY} )
 
 install(TARGETS audiophile RUNTIME DESTINATION bin)

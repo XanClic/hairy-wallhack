@@ -1,12 +1,12 @@
 #include "math.hpp"
 # include "flappy_box/controller/box_object_logic.hpp"
-# include <AL/alut.h>
-# include <thread>
+
+#include <cstdio>
 
 
 static const scalar_type accel_damping = .8f;
 static const scalar_type vlcty_damping = .8f;
-static const vec3_type gravity = vec3_type(0.f, 0.f, -9.81f);
+static const vec3_type gravity = vec3_type(0.f, -9.81f, 0.f);
 
 
 using namespace ::flappy_box::controller;
@@ -19,6 +19,12 @@ BoxObjectLogic::BoxObjectLogic(const std::shared_ptr< flappy_box::model::Box >& 
 bool BoxObjectLogic::advance( ::controller::Logic& l, ::controller::InputEventHandler::keyboard_event const& ev )
 {
   scalar_type timestep_sec = l.game_model()->timestep().count();
+
+  // FIXME: Use external force vector
+  _model->angle() += timestep_sec / 10.f;
+  while (_model->angle() > 2 * static_cast<float>(M_PI)) {
+    _model->angle() -= 2 * static_cast<float>(M_PI);
+  }
 
   _model->acceleration() = _model->acceleration() * accel_damping + _model->externalForce() + gravity;
   _model->velocity()    += _model->acceleration() * timestep_sec;

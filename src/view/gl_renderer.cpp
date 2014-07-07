@@ -1,9 +1,16 @@
+#include <dake/gl/gl.hpp>
+#include <dake/math/matrix.hpp>
+
+#include "math.hpp"
+
 # include "view/gl_renderer.hpp"
 
 # include "view/glut_window.hpp"
 
 # include "GL/freeglut.h"
 
+using namespace dake;
+using namespace dake::math;
 using namespace ::view;
 
 GlRenderer::GlRenderer( std::shared_ptr< model::Game const > const& g )
@@ -25,18 +32,25 @@ GlRenderer::delegate_factory_type const& GlRenderer::drawable_factory() const
   return _drawable_factory;
 }
 
+void GlRenderer::init_with_context(void)
+{
+  gl::glext_init();
+
+  glClearColor(1.f, 1.f, 1.f, 1.f);
+
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
+}
+
 void GlRenderer::visualize_model( GlutWindow& w )
 {
 #ifndef DEBUG_VISUALIZATION 
-  glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
-  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #endif
-  
-  glMatrixMode( GL_MODELVIEW );
-  glLoadIdentity();
-  gluLookAt( 0,-100,0, 0,0,0, 0,0,1 );
-  
-  
+
+
+  cam = mat4::identity().translated(vec3(0.f, 0.f, -100.f));
+
   // render routines for game objects
   for( auto o : game_model()->objects() )
   {
@@ -54,10 +68,12 @@ void GlRenderer::visualize_model( GlutWindow& w )
   glutSwapBuffers(); 
 }
 
-void GlRenderer::resize( GlutWindow& win ) 
+void GlRenderer::resize(GlutWindow &win)
 {
-  glViewport( 0,0, win.width(), win.height() );
-  glMatrixMode( GL_PROJECTION );
-  glLoadIdentity(); //Reset the camera
-  gluPerspective( 45., win.width() / double( win.height() ), 1.0, 1000. );
+  width = win.width();
+  height = win.height();
+
+  glViewport(0, 0, width, height);
+
+  proj = mat4::projection(static_cast<float>(M_PI) / 2.f, static_cast<float>(width) / height, 1.f, 1000.f);
 }

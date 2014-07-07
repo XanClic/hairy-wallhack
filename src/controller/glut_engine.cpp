@@ -24,6 +24,10 @@ void GlutEngine::init( int& argc, char** argv )
 {
   glutInit( &argc, argv );
   glutSetOption( GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION );
+
+  glutInitContextVersion(3, 3);
+  glutInitContextProfile(GLUT_CORE_PROFILE);
+
   // Set global function which will be invoked by glutStepTimer.
   __controller__glut_engine__step_func = [this](){ this->step(  ); };
 }
