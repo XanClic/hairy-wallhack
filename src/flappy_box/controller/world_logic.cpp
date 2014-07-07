@@ -113,7 +113,7 @@ void WorldLogic::addBoxToGame(Logic &l)
   std::uniform_real_distribution<scalar_type> size_exp_dist(-4.f, 3.f);
   scalar_type size = exp2(size_exp_dist(rng));
 
-  vec3_type max_pos(_model->getWorldHalfWidth() - size / 2.f, HUGE_VALF, _model->getWorldHalfHeight() - size / 2.f);
+  vec3_type max_pos(_model->getWorldHalfWidth() - size / 2.f, _model->getWorldHalfHeight() - size / 2.f, HUGE_VALF);
 
   std::uniform_real_distribution<scalar_type> x_dist(-max_pos.x(), max_pos.x());
   scalar_type x = x_dist(rng);
@@ -144,22 +144,22 @@ void WorldLogic::setForce(std::shared_ptr<Box> &box, std::shared_ptr<Paddle> &pa
 
   vec3_type pll = paddle->position() - paddle->size() / 2.f; // lower left
   vec3_type pur = paddle->position() + paddle->size() / 2.f; // upper right
-  pll.z() = -HUGE_VALF;
-  pur.z() =  HUGE_VALF;
+  pll.y() = -HUGE_VALF;
+  pur.y() =  HUGE_VALF;
 
   vec3_type force;
 
   if (in_bounding_box(box->position(), pll, pur)) {
-    force = vec3_type(0.f, 0.f, 1.f);
-  } else if (box->position().z() > paddle->position().z()) { // "oberhalb", not "oberhalb oder auf gleicher Höhe"
+    force = vec3_type(0.f, 1.f, 0.f);
+  } else if (box->position().y() > paddle->position().y()) { // "oberhalb", not "oberhalb oder auf gleicher Höhe"
     vec3_type min_vector(HUGE_VALF, HUGE_VALF, HUGE_VALF);
 
     // Only consider vertices, no edges (the tasks requires this)
     // (2edgy4u)
     for (int xm: {-1, 1}) {
-      for (int zm: {-1, 1}) {
+      for (int ym: {-1, 1}) {
         vec3_type paddle_vertex =
-            paddle->position() + vec3_type(xm * paddle->size().x(), 0.f, zm * paddle->size().z());
+            paddle->position() + vec3_type(xm * paddle->size().x(), 0.f, ym * paddle->size().y());
 
         vec3_type vector = box->position() - paddle_vertex;
         if (vector.length() < min_vector.length()) {
@@ -187,9 +187,9 @@ void WorldLogic::restartGame(Logic &l)
   _model->remainingLives() = 5;
 
   std::shared_ptr<Paddle> user_paddle(new Paddle("PlayerPaddle"));
-  user_paddle->size() = vec3_type(10.f, 1.f, 2.5f);
-  user_paddle->position() = vec3_type(0.f, 0.f, -_model->getWorldHalfHeight() + user_paddle->size().z() * 2.f);
-  user_paddle->maxPosition() = vec3_type(_model->getWorldHalfWidth() - user_paddle->size().x() / 2.f, HUGE_VALF, _model->getWorldHalfHeight());
+  user_paddle->size() = vec3_type(10.f, 2.5f, 1.f);
+  user_paddle->position() = vec3_type(0.f, -_model->getWorldHalfHeight() + user_paddle->size().y() * 2.f, 0.f);
+  user_paddle->maxPosition() = vec3_type(_model->getWorldHalfWidth() - user_paddle->size().x() / 2.f, _model->getWorldHalfHeight(), HUGE_VALF);
 
   l.game_model()->addGameObject(user_paddle);
 
