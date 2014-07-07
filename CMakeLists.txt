@@ -110,5 +110,6 @@ add_executable( audiophile src/main.cpp
               )
 
 target_link_libraries( audiophile -ldake ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${OPENAL_LIBRARY} ${ALUT_LIBRARY} ${GLEW_LIBRARIES} ${PNG_LIBRARY} )
+add_dependencies(audiophile dake)
 
 install(TARGETS audiophile RUNTIME DESTINATION bin)
