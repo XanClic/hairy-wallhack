@@ -91,16 +91,17 @@ BoxGlDrawable::~BoxGlDrawable()
 
 void BoxGlDrawable::visualize(GlRenderer &r, GlutWindow &w)
 {
-  mat4 mvp = r.projection() * r.camera();
-  mvp.translate(_model->position());
-  mvp.rotate(_model->angle(), vec3(0.f, 0.f, 1.f));
-  mvp.scale(vec3(_model->size(), _model->size(), _model->size()));
+  mat4 mv = r.camera();
+  mv.translate(_model->position());
+  mv.rotate(_model->angle(), vec3(0.f, 0.f, 1.f));
+  mv.scale(vec3(_model->size(), _model->size(), _model->size()));
 
   box_prg->use();
-  box_prg->uniform<mat4>("mvp") = mvp;
-  box_prg->uniform<mat3>("norm_mat") = mat3(mvp).transposed_inverse();
+  box_prg->uniform<mat4>("mv") = mv;
+  box_prg->uniform<mat4>("proj") = r.projection();
+  box_prg->uniform<mat3>("norm_mat") = mat3(mv).transposed_inverse();
 
-  box_prg->uniform<vec3>("light_dir") = vec3(-1.f, -3.f, 1.f);
+  box_prg->uniform<vec3>("light_pos") = vec3(0.f, -3.f, -1.f);
   box_prg->uniform<vec3>("ambient") = vec3(.1f, .1f, .1f);
 
   for (bool lines: {false, true}) {
@@ -112,8 +113,10 @@ void BoxGlDrawable::visualize(GlRenderer &r, GlutWindow &w)
     box_prg->uniform<float>("enlightenment") = lines ? 2.f : 1.f;
 
     for (size_t i = 0; i < box_sections.size(); i++) {
-      box_prg->uniform<gl::texture>("tex") = *box_sections[i].material.tex;
       box_sections[i].material.tex->bind();
+      box_prg->uniform<gl::texture>("tex") = *box_sections[i].material.tex;
+      box_prg->uniform<vec3>("diffuse_base") = box_sections[i].material.diffuse;
+      box_prg->uniform<vec3>("ambient") = box_sections[i].material.ambient;
 
       box_vas[i]->draw(GL_TRIANGLES);
     }
