@@ -1,12 +1,15 @@
+#include <dake/gl/gl.hpp>
+
 # include "view/glut_window.hpp"
 
-
-#include <GL/glew.h>
 # include <GL/freeglut.h>
 
 # include <iostream>
 
+
+using namespace dake;
 using namespace ::view;
+
 
 GlutWindow::GlutWindow( const std::string& name, size_t width, size_t height, const std::shared_ptr< GlRenderer >& r, const std::shared_ptr< controller::InputEventHandler >& h )
 : _name( name )
@@ -23,7 +26,7 @@ GlutWindow::GlutWindow( const std::string& name, size_t width, size_t height, co
   if( is_closed() ) 
     throw std::logic_error( "::view::GlutWindow::GlutWindow: Could not create GLUT window." );
 
-  glewInit();
+  gl::glext_init();
 
   glutSetWindowData( this );
 

@@ -1,10 +1,16 @@
-# pragma once
+#ifndef VIEW__GL_RENDERER_HPP
+#define VIEW__GL_RENDERER_HPP
 
+#include <dake/gl/framebuffer.hpp>
+#include <dake/gl/shader.hpp>
+#include <dake/gl/vertex_array.hpp>
 #include <dake/math/matrix.hpp>
 
-# include "model/game.hpp"
+#include <memory>
 
-# include "factory_map.hpp"
+#include "model/game.hpp"
+
+#include "factory_map.hpp"
 
 namespace view 
 {
@@ -44,6 +50,9 @@ namespace view
       delegate_factory_type _drawable_factory;
 
       dake::math::mat4 cam, proj;
+      std::shared_ptr<dake::gl::framebuffer> fb, blur_fbs[2];
+      std::shared_ptr<dake::gl::program> fb_prg, blur_prg[2];
+      std::shared_ptr<dake::gl::vertex_array> fb_vertices;
 
       unsigned width, height;
 
@@ -51,3 +60,4 @@ namespace view
 
 } // view::
 
+#endif
