@@ -9,6 +9,7 @@
 #include "flappy_box/controller/world_logic.hpp"
 #include "flappy_box/view/box_al_audible.hpp"
 #include "flappy_box/view/box_gl_drawable.hpp"
+#include "flappy_box/view/paddle_gl_drawable.hpp"
 #include "flappy_box/view/world_gl_drawable.hpp"
 #include "view/glut_window.hpp"
 
@@ -41,7 +42,8 @@ void FlappyEngine::init( int& argc, char** argv )
   al_renderer()-> audible_factory().register_module<model::Box>([](const std::shared_ptr<model::Box> &b ) { return std::make_shared<view::BoxAlAudible> (b); });
   gl_renderer()->drawable_factory().register_module<model::Box>([](const std::shared_ptr<model::Box> &b ) { return std::make_shared<view::BoxGlDrawable>(b); });
 
-  game_logic()->logic_factory().register_module<model::Paddle>([](const std::shared_ptr<model::Paddle> &p) { return std::make_shared<PaddleLogic>(p); });
+  game_logic() ->   logic_factory().register_module<model::Paddle>([](const std::shared_ptr<model::Paddle> &p) { return std::make_shared<PaddleLogic>           (p); });
+  gl_renderer()->drawable_factory().register_module<model::Paddle>([](const std::shared_ptr<model::Paddle> &p) { return std::make_shared<view::PaddleGlDrawable>(p); });
 
   game_logic() ->   logic_factory().register_module<model::World>([](const std::shared_ptr<model::World> &w) { return std::make_shared<WorldLogic>           (w); });
   gl_renderer()->drawable_factory().register_module<model::World>([](const std::shared_ptr<model::World> &w) { return std::make_shared<view::WorldGlDrawable>(w); });
@@ -51,6 +53,11 @@ void FlappyEngine::init( int& argc, char** argv )
   box->size() = 20.f;
   box->angle() = 22.5f;
   game_model()->addGameObject( box );
+
+  std::shared_ptr<model::Paddle> paddle(new model::Paddle("Paddle"));
+  paddle->size() = vec3_type(40.f, 5.f, 40.f);
+  paddle->position() = vec3_type(0.f, -30.f, 0.f);
+  game_model()->addGameObject(paddle);
 
   game_model()->addGameObject(std::make_shared<model::World>(u8"ザ　ワルダ"));
 }

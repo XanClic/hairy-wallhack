@@ -91,18 +91,17 @@ BoxGlDrawable::~BoxGlDrawable()
 
 void BoxGlDrawable::visualize(GlRenderer &r, GlutWindow &w)
 {
-  mat4 mv = r.camera();
+  mat4 mv = mat4::identity();
   mv.translate(_model->position());
   mv.rotate(_model->angle(), vec3(0.f, 0.f, 1.f));
   mv.scale(vec3(_model->size(), _model->size(), _model->size()));
 
   box_prg->use();
   box_prg->uniform<mat4>("mv") = mv;
-  box_prg->uniform<mat4>("proj") = r.projection();
+  box_prg->uniform<mat4>("proj") = r.projection() * r.camera();
   box_prg->uniform<mat3>("norm_mat") = mat3(mv).transposed_inverse();
 
-  box_prg->uniform<vec3>("light_pos") = vec3(0.f, -3.f, -1.f);
-  box_prg->uniform<vec3>("ambient") = vec3(.1f, .1f, .1f);
+  box_prg->uniform<vec3>("light_pos") = r.light_position();
 
   for (bool lines: {false, true}) {
     if (lines) {
