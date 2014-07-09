@@ -21,8 +21,8 @@ namespace flappy_box
         int &remainingLives(void) { return _remainingLives; }
         int remainingLives(void) const { return _remainingLives; }
 
-        distance_type getWorldHalfHeight(void) const { return 30.f; }
-        distance_type getWorldHalfWidth(void) const { return 42.f; }
+        distance_type getWorldHalfHeight(void) const { return 50.f; }
+        distance_type getWorldHalfWidth(void) const { return 80.f; }
 
 
       private:

@@ -10,9 +10,9 @@ uniform float strip_min_y, strip_height;
 
 void main(void)
 {
-  float alpha = 0.25 * sin(3.141 * (vf_position.y - strip_min_y) / strip_height);
+  float alpha = sin(3.141 * (vf_position.y - strip_min_y) / strip_height);
 
   // Now THIS looks hot
-  out_mi = vec4(ambient / 5.0, alpha);
-  out_hi = vec4(ambient / 1.5, alpha);
+  out_mi = vec4(ambient       , 0.05 * alpha);
+  out_hi = vec4(ambient * 10.0, 0.3  * alpha);
 }

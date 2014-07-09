@@ -5,9 +5,9 @@
 
 
 static const scalar_type player_accel_scale = 1000.f;
-static const scalar_type accel_damping = .8f;
-static const scalar_type vlcty_damping = .8f;
-static const scalar_type max_vlcty = 100.f;
+static const scalar_type accel_damping = .0f;
+static const scalar_type vlcty_damping = .9f;
+static const scalar_type max_vlcty = 200.f;
 
 
 using namespace controller;

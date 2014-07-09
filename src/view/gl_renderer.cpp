@@ -7,14 +7,15 @@
 #include <dake/math/matrix.hpp>
 
 #include <memory>
+#include <cstdio>
 
 #include "math.hpp"
 
-# include "view/gl_renderer.hpp"
+#include "view/gl_renderer.hpp"
+#include "view/glut_window.hpp"
+#include "flappy_box/view/paddle_gl_drawable.hpp"
 
-# include "view/glut_window.hpp"
-
-# include "GL/freeglut.h"
+#include "GL/freeglut.h"
 
 
 using namespace dake;
@@ -43,8 +44,6 @@ GlRenderer::delegate_factory_type const& GlRenderer::drawable_factory() const
 
 void GlRenderer::init_with_context(void)
 {
-  glClearColor(0.f, 0.f, 0.f, 1.f);
-
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
 
@@ -107,6 +106,31 @@ void GlRenderer::init_with_context(void)
   }
 
 
+  gl::shader char_vsh(gl::shader::VERTEX), char_fsh(gl::shader::FRAGMENT);
+
+  char_vsh.load("res/char_vsh.glsl");
+  char_fsh.load("res/char_fsh.glsl");
+
+  if (!char_vsh.compile() || !char_fsh.compile()) {
+    throw std::runtime_error("Could not compile character rendering shaders");
+  }
+
+  char_prg = std::make_shared<gl::program>();
+
+  *char_prg << char_vsh;
+  *char_prg << char_fsh;
+
+  char_prg->bind_attrib("in_pos", 0);
+  char_prg->bind_frag("out_color", 0);
+
+  if (!char_prg->link()) {
+    throw std::runtime_error("Could not link character rendering program");
+  }
+
+
+  bitmap_font = std::make_shared<gl::texture>("res/font.png");
+
+
   fb_vertices = std::make_shared<gl::vertex_array>();
   fb_vertices->set_elements(4);
 
@@ -122,27 +146,54 @@ void GlRenderer::init_with_context(void)
 
 void GlRenderer::visualize_model( GlutWindow& w )
 {
+  // clear normal color texture with white
+
+  fb->mask(1);
   fb->bind();
 
-#ifndef DEBUG_VISUALIZATION 
+  glClearColor(.7f, .7f, .7f, 1.f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#endif
+
+
+  // clear bright color texture with black
+
+  fb->unmask(1);
+  fb->mask(0);
+  fb->bind();
+
+  glClearColor(0.f, 0.f, 0.f, 1.f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+  fb->unmask(0);
+  fb->bind();
 
 
   cam = mat4::identity().translated(vec3(0.f, 0.f, -100.f));
 
   // render routines for game objects
-  for( auto o : game_model()->objects() )
-  {
-    auto drawable = o->getData< Drawable >();
-    if( ! drawable )
-    {
+  flappy_box::view::PaddleGlDrawable *paddle = nullptr;
+
+  for(auto o: game_model()->objects()) {
+    auto drawable = o->getData<Drawable>();
+    if(!drawable) {
       //std::clog << "::view::GlRenderer::visualize_model: Adding new Drawable for \"" << o->name() << "\"." << std::endl;
-      drawable = _drawable_factory.create_for( o );
+      drawable = _drawable_factory.create_for(o);
       o->registerData( drawable );
     }
 
-    if( drawable ) drawable->visualize( *this, w );
+    if (drawable) {
+      if (typeid(*drawable) == typeid(flappy_box::view::PaddleGlDrawable)) {
+        // the paddle (or rather the vortices) *must* be drawn last
+        paddle = dynamic_cast<flappy_box::view::PaddleGlDrawable *>(drawable.get());
+      } else {
+        drawable->visualize(*this, w);
+      }
+    }
+  }
+
+  if (paddle) {
+    paddle->visualize(*this, w);
   }
 
 
@@ -178,8 +229,48 @@ void GlRenderer::visualize_model( GlutWindow& w )
   fb_vertices->draw(GL_TRIANGLE_STRIP);
 
 
+  glDisable(GL_DEPTH_TEST);
+
+  char info[32];
+
+  snprintf(info, sizeof(info), "%i points", game_model()->points);
+  render_line(vec2(-1.f, 1.f), info);
+
+  snprintf(info, sizeof(info), "%i lives", game_model()->lives);
+  render_line(vec2(-1.f, 1.f - char_size.y()), info);
+
+  glEnable(GL_DEPTH_TEST);
+
+
   glutSwapBuffers();
 }
+
+
+void GlRenderer::render_character(vec2 pos, unsigned char c, vec3 color)
+{
+  char_prg->use();
+  char_prg->uniform<vec2>("position") = pos + vec2(char_size.x() / 2.f, -char_size.y() / 2.f);
+  char_prg->uniform<vec2>("size") = char_size / 2.f;
+  char_prg->uniform<vec2>("char_position") = vec2(c % 16, c / 16);
+  char_prg->uniform<vec3>("color") = color;
+
+  bitmap_font->bind();
+  char_prg->uniform<gl::texture>("font") = *bitmap_font;
+
+  fb_vertices->draw(GL_TRIANGLE_STRIP);
+}
+
+
+void GlRenderer::render_line(vec2 pos, const char *string, vec3 color)
+{
+  while (*string) {
+    render_character(pos, *string, color);
+    pos.x() += 6.f / 5.f * char_size.x();
+
+    string++;
+  }
+}
+
 
 void GlRenderer::resize(GlutWindow &win)
 {
@@ -195,5 +286,8 @@ void GlRenderer::resize(GlutWindow &win)
     glViewport(0, 0, width, height);
   }
 
-  proj = mat4::projection(static_cast<float>(M_PI) / 2.f, static_cast<float>(width) / height, 1.f, 1000.f);
+  proj = mat4::projection(static_cast<float>(M_PI) / 3.f, static_cast<float>(width) / height, 1.f, 1000.f);
+
+  // FIXME: This depends on the character aspect
+  char_size = vec2(.025f, .05f * width / height);
 }
