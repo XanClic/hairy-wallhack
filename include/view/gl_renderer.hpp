@@ -42,6 +42,9 @@ namespace view
 
       const dake::math::mat4 &projection(void) const { return proj; }
 
+      dake::math::vec3 &light_position(void) { return light_pos; }
+      const dake::math::vec3 &light_position(void) const { return light_pos; }
+
       virtual void visualize_model( GlutWindow& );
       virtual void resize( GlutWindow& );
 
@@ -53,6 +56,8 @@ namespace view
       std::shared_ptr<dake::gl::framebuffer> fb, blur_fbs[2];
       std::shared_ptr<dake::gl::program> fb_prg, blur_prg[2];
       std::shared_ptr<dake::gl::vertex_array> fb_vertices;
+
+      dake::math::vec3 light_pos = dake::math::vec3(0.f, 0.f, 0.f);
 
       unsigned width, height;
 
