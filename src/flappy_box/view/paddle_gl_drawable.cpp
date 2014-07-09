@@ -17,7 +17,8 @@ using namespace flappy_box::view;
 using flappy_box::model::Paddle;
 
 
-static gl::program *paddle_prg;
+static bool shaders_valid;
+static gl::program *paddle_prg, *vortex_prg;
 
 
 PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
@@ -26,9 +27,26 @@ PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
   updateVBOs();
 
 
-  if (paddle_prg) {
+  for (gl::vertex_array &va: vortex_vas) {
+    va.set_elements(vortex_line_len * 2);
+
+    gl::vertex_attrib *vap = va.attrib(0);
+    vap->format(3);
+    vap->data(nullptr, static_cast<size_t>(-1), GL_DYNAMIC_DRAW);
+  }
+
+  for (int v = 0; v < vortex_cnt; v++) {
+    for (int s = 0; s < vortex_line_len; s++) {
+      vortex_dat[v][s][0] = _model->position();
+      vortex_dat[v][s][1] = _model->position();
+    }
+  }
+
+
+  if (shaders_valid) {
     return;
   }
+
 
   gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
 
@@ -51,17 +69,40 @@ PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
   paddle_prg->bind_frag("out_hi", 1);
 
   if (!paddle_prg->link()) {
-    delete paddle_prg;
-    paddle_prg = nullptr;
-
     throw std::runtime_error("Could not link paddle program");
   }
 
-
-  // set constant uniforms right away
-
-  paddle_prg->uniform<vec3>("diffuse_base") = vec3(.6f, .9f, .7f);
+  // set constant uniform right away
   paddle_prg->uniform<vec3>("ambient") = vec3(0.f, 0.f, 0.f);
+
+
+  gl::shader vvsh(gl::shader::VERTEX), vfsh(gl::shader::FRAGMENT);
+
+  vvsh.load("res/vortex_vsh.glsl");
+  vfsh.load("res/vortex_fsh.glsl");
+
+  if (!vvsh.compile() || !vfsh.compile()) {
+    throw std::runtime_error("Could not compile vortex shaders");
+  }
+
+  vortex_prg = new gl::program;
+
+  *vortex_prg << vvsh;
+  *vortex_prg << vfsh;
+
+  vortex_prg->bind_attrib("in_position", 0);
+
+  vortex_prg->bind_frag("out_mi", 0);
+  vortex_prg->bind_frag("out_hi", 1);
+
+  if (!vortex_prg->link()) {
+    throw std::runtime_error("Could not link vortex program");
+  }
+
+  vortex_prg->uniform<vec3>("ambient") = vec3(.4f, .9f, .7f);
+
+
+  shaders_valid = true;
 }
 
 
@@ -135,6 +176,65 @@ void PaddleGlDrawable::updateVBOs(void)
   ela->format(3);
   ela->data(indices);
   delete[] indices;
+
+
+  // rotor
+
+  // creating an index buffer is dumb as hell
+  //
+  // Without an index buffer, you'll need to transfer the following amount of data:
+  // 2 * (blade_cnt * 3) * sizeof(GLfloat)   -- positions and normals
+  // = 2 * 9 * 3 * 4 = 216
+  //
+  // With an index buffer, you'll need to transfer the following amount of data:
+  // 2 * (blade_cnt * 2 + 1) * sizeof(GLfloat) + blade_cnt * 3 * sizeof(GLint)
+  // = 2 * (9 * 2 + 1) * 4 + 9 * 3 * 4
+  // = 152 + 108 = 260
+  //
+  // Additionally, the normal is wrong.
+  //
+  // I just noticed that I want two triangles per blade (because I like backface
+  // culling), but using an index buffer wouldn't improve the situation there
+  // either, because the normal is the other way around. Therefore, it's nearly
+  // the same only with double the numbers.
+
+  vertex_positions = new vec3[blade_cnt * 3 * 2];
+  vertex_normals   = new vec3[blade_cnt * 3 * 2];
+
+  for (int blade = 0; blade < blade_cnt; blade++) {
+    // task cannot into usual arithmetic conversions
+    float a1 = 2.f * static_cast<float>(M_PI) * (blade + .3f) / blade_cnt;
+    float a2 = 2.f * static_cast<float>(M_PI) * (blade - .3f) / blade_cnt;
+
+    vertex_positions[blade * 6 + 0] = vec3(0.f, 0.f, 0.f);
+    vertex_positions[blade * 6 + 1] = vec3((r0 - r1) * cosf(a1), -r1, (r0 - r1) * sinf(a1));
+    vertex_positions[blade * 6 + 2] = vec3((r0 - r1) * cosf(a2),  r1, (r0 - r1) * sinf(a2));
+
+    // As the task implies compatibility mode, it would probably have been too
+    // easy to auto-calculate the normal
+    vertex_normals[blade * 6 + 0] = vertex_normals[blade * 6 + 1] = vertex_normals[blade * 6 + 2] =
+        vec3(vertex_positions[blade * 6 + 1].cross(vertex_positions[blade * 6 + 2]));
+
+    vertex_positions[blade * 6 + 3] = vertex_positions[blade * 6 + 0];
+    vertex_positions[blade * 6 + 4] = vertex_positions[blade * 6 + 2];
+    vertex_positions[blade * 6 + 5] = vertex_positions[blade * 6 + 1];
+
+    vertex_normals[blade * 6 + 3] = vertex_normals[blade * 6 + 4] = vertex_normals[blade * 6 + 5] =
+        -vertex_normals[blade * 6 + 0];
+  }
+
+
+  blade_va.set_elements(blade_cnt * 3 * 2);
+
+  vap = blade_va.attrib(0);
+  vap->format(3);
+  vap->data(vertex_positions);
+  delete[] vertex_positions;
+
+  van = blade_va.attrib(1);
+  van->format(3);
+  van->data(vertex_normals);
+  delete[] vertex_normals;
 }
 
 
@@ -147,6 +247,7 @@ void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &w)
   // FIXME (shouldn't be set here)
   r.light_position() = _model->position() + vec3(0.f, 3.f * r1, 1.5f * r0);
 
+
   mat4 mv = mat4::identity();
   mv.translate(_model->position());
 
@@ -157,6 +258,59 @@ void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &w)
 
   paddle_prg->uniform<vec3>("light_pos") = r.light_position();
   paddle_prg->uniform<float>("enlightenment") = 1.f;
+  paddle_prg->uniform<vec3>("diffuse_base") = vec3(.6f, .9f, .7f);
 
   paddle_va.draw(GL_TRIANGLES);
+
+
+  mv.rotate(blades_ang, vec3(0.f, 1.f, 0.f));
+
+  float timestep_sec = r.game_model()->timestep().count();
+
+  blades_ang += timestep_sec * 4.f * static_cast<float>(M_PI);
+  while (blades_ang >= 2.f * static_cast<float>(M_PI)) {
+    blades_ang -= 2.f * static_cast<float>(M_PI);
+  }
+
+  paddle_prg->uniform<mat4>("mv") = mv;
+  paddle_prg->uniform<mat3>("norm_mat") = mat3(mv).transposed_inverse();
+
+  paddle_prg->uniform<vec3>("diffuse_base") = vec3(.4f, 1.f, .2f);
+
+  blade_va.draw(GL_TRIANGLES);
+
+
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+  glDepthMask(false);
+
+  vortex_prg->use();
+  vortex_prg->uniform<mat4>("proj") = r.projection() * r.camera();
+
+  for (int v = 0; v < vortex_cnt; v++) {
+    for (int s = vortex_line_len - 1; s > 0; s--) {
+      vortex_dat[v][s][0] = vortex_dat[v][s - 1][0] + vec3_type(0.f, timestep_sec * vortex_speed, 0.f);
+      vortex_dat[v][s][1] = vortex_dat[v][s][0] + (vortex_dat[v][s - 1][1] - vortex_dat[v][s - 1][0]) * 1.075f;
+    }
+
+    float a = 2.f * static_cast<float>(M_PI) * v / vortex_cnt - blades_ang;
+
+    vortex_dat[v][0][0] = _model->position();
+    vortex_dat[v][0][1] = _model->position() + vec3((r0 - r1) * cosf(a), 1.5f * r1, (r0 - r1) * sinf(a));
+
+    vec3 *vd = static_cast<vec3 *>(vortex_vas[v].attrib(0)->map());
+    for (int s = 0; s < vortex_line_len; s++) {
+      *(vd++) = vortex_dat[v][s][1] - vec3(.5f * vortex_band_width, 0.f, 0.f);
+      *(vd++) = vortex_dat[v][s][1] + vec3(.5f * vortex_band_width, 0.f, 0.f);
+    }
+    vortex_vas[v].attrib(0)->unmap();
+
+    vortex_prg->uniform<float>("strip_min_y") = vortex_dat[v][0][1].y();
+    vortex_prg->uniform<float>("strip_height") = vortex_dat[v][vortex_line_len - 1][1].y() - vortex_dat[v][0][1].y();
+
+    vortex_vas[v].draw(GL_TRIANGLE_STRIP);
+  }
+
+  glDepthMask(true);
+  glDisable(GL_BLEND);
 }

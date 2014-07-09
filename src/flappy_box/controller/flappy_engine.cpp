@@ -56,7 +56,7 @@ void FlappyEngine::init( int& argc, char** argv )
 
   std::shared_ptr<model::Paddle> paddle(new model::Paddle("Paddle"));
   paddle->size() = vec3_type(40.f, 5.f, 40.f);
-  paddle->position() = vec3_type(0.f, -30.f, 0.f);
+  paddle->position() = vec3_type(0.f, -60.f, 0.f);
   game_model()->addGameObject(paddle);
 
   game_model()->addGameObject(std::make_shared<model::World>(u8"ザ　ワルダ"));

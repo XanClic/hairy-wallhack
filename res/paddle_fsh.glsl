@@ -7,7 +7,6 @@ out vec4 out_mi, out_hi;
 
 uniform vec3 light_pos, ambient, diffuse_base;
 uniform float enlightenment;
-uniform sampler2D tex;
 
 
 void main(void)
