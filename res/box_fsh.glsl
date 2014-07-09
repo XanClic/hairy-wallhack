@@ -18,5 +18,5 @@ void main(void)
   vec3 col = enlightenment * (ambient + diff_co * diffuse_base) * texture(tex, vf_texcoord).rgb;
 
   out_mi = vec4(col, 1.0);
-  out_hi = vec4(col / 10.0, 1.0);
+  out_hi = vec4(col, 1.0);
 }

@@ -48,16 +48,6 @@ void FlappyEngine::init( int& argc, char** argv )
   game_logic() ->   logic_factory().register_module<model::World>([](const std::shared_ptr<model::World> &w) { return std::make_shared<WorldLogic>           (w); });
   gl_renderer()->drawable_factory().register_module<model::World>([](const std::shared_ptr<model::World> &w) { return std::make_shared<view::WorldGlDrawable>(w); });
 
-  // create one single cube (to be deleted later...)
-  std::shared_ptr<model::Box> box = std::make_shared<model::Box>("Box");
-  box->size() = 20.f;
-  box->angle() = 22.5f;
-  game_model()->addGameObject( box );
-
-  std::shared_ptr<model::Paddle> paddle(new model::Paddle("Paddle"));
-  paddle->size() = vec3_type(40.f, 5.f, 40.f);
-  paddle->position() = vec3_type(0.f, -60.f, 0.f);
-  game_model()->addGameObject(paddle);
 
   game_model()->addGameObject(std::make_shared<model::World>(u8"ザ　ワルダ"));
 }

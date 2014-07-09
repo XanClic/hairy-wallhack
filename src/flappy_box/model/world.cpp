@@ -7,5 +7,5 @@ using namespace flappy_box::model;
 
 
 World::World(const std::string &name):
-  GameObject(false, name)
+  GameObject(true, name)
 {}

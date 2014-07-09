@@ -3,6 +3,7 @@
 
 #include <dake/gl/framebuffer.hpp>
 #include <dake/gl/shader.hpp>
+#include <dake/gl/texture.hpp>
 #include <dake/gl/vertex_array.hpp>
 #include <dake/math/matrix.hpp>
 
@@ -45,6 +46,10 @@ namespace view
       dake::math::vec3 &light_position(void) { return light_pos; }
       const dake::math::vec3 &light_position(void) const { return light_pos; }
 
+      void render_character(dake::math::vec2 pos, unsigned char c, dake::math::vec3 color = dake::math::vec3(1.f, 1.f, 1.f));
+      void render_line(dake::math::vec2 pos, const char *string, dake::math::vec3 color = dake::math::vec3(1.f, 1.f, 1.f));
+      const dake::math::vec2 &character_size(void) const { return char_size; }
+
       virtual void visualize_model( GlutWindow& );
       virtual void resize( GlutWindow& );
 
@@ -54,11 +59,13 @@ namespace view
 
       dake::math::mat4 cam, proj;
       std::shared_ptr<dake::gl::framebuffer> fb, blur_fbs[2];
-      std::shared_ptr<dake::gl::program> fb_prg, blur_prg[2];
+      std::shared_ptr<dake::gl::program> fb_prg, blur_prg[2], char_prg;
       std::shared_ptr<dake::gl::vertex_array> fb_vertices;
+      std::shared_ptr<dake::gl::texture> bitmap_font;
 
       dake::math::vec3 light_pos = dake::math::vec3(0.f, 0.f, 0.f);
 
+      dake::math::vec2 char_size;
       unsigned width, height;
 
   }; // GlRenderer

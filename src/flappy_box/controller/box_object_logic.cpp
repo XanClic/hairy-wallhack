@@ -4,7 +4,7 @@
 #include <cstdio>
 
 
-static const scalar_type accel_damping = .8f;
+static const scalar_type accel_damping = .1f;
 static const scalar_type vlcty_damping = .8f;
 static const vec3_type gravity = vec3_type(0.f, -9.81f, 0.f);
 
@@ -20,11 +20,11 @@ bool BoxObjectLogic::advance( ::controller::Logic& l, ::controller::InputEventHa
 {
   scalar_type timestep_sec = l.game_model()->timestep().count();
 
-  // FIXME: Use external force vector
-  _model->angle() += timestep_sec / 10.f;
-  while (_model->angle() > 2 * static_cast<float>(M_PI)) {
-    _model->angle() -= 2 * static_cast<float>(M_PI);
-  }
+  _model->rotAcceleration() = _model->rotAcceleration() * accel_damping - _model->externalForce().x() / 10.f;
+  _model->rotVelocity()    += _model->rotAcceleration() * timestep_sec;
+  _model->angle()          += _model->rotVelocity()     * timestep_sec;
+
+  _model->angle() = fmodf(_model->angle(), 2.f * static_cast<float>(M_PI));
 
   _model->acceleration() = _model->acceleration() * accel_damping + _model->externalForce() + gravity;
   _model->velocity()    += _model->acceleration() * timestep_sec;

@@ -99,7 +99,7 @@ PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
     throw std::runtime_error("Could not link vortex program");
   }
 
-  vortex_prg->uniform<vec3>("ambient") = vec3(.4f, .9f, .7f);
+  vortex_prg->uniform<vec3>("ambient") = vec3(.9f, .7f, .3f);
 
 
   shaders_valid = true;

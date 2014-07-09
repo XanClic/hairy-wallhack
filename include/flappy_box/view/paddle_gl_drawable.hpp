@@ -37,8 +37,8 @@ namespace flappy_box
         static const int blade_cnt = 9;
         dake::gl::vertex_array blade_va;
 
-        static const int vortex_cnt = 3, vortex_line_len = 20;
-        static const constexpr scalar_type vortex_speed = 400.f, vortex_band_width = 10.f;
+        static const int vortex_cnt = 3, vortex_line_len = 60;
+        static const constexpr scalar_type vortex_speed = 100.f, vortex_band_width = 2.f;
         dake::gl::vertex_array vortex_vas[vortex_cnt];
         vec3_type vortex_dat[vortex_cnt][vortex_line_len][2];
 

@@ -1,6 +1,8 @@
 #ifndef FLAPPY_BOX__VIEW__WORLD_GL_DRAWABLE_HPP
 #define FLAPPY_BOX__VIEW__WORLD_GL_DRAWABLE_HPP
 
+#include <dake/gl/vertex_array.hpp>
+
 #include "view/gl_renderer.hpp"
 #include "flappy_box/model/world.hpp"
 
@@ -16,6 +18,9 @@ namespace flappy_box
 
       private:
         std::shared_ptr<const model::World> _model;
+
+        dake::gl::vertex_array *va;
+        float time_step = 0.f;
     };
   }
 }

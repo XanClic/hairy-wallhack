@@ -46,9 +46,15 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
 
   // Oh my beloved Madoka, you can't be serious
   const auto &objs = l.game_model()->objects();
+  auto paddle_obj_it = std::find_if(objs.begin(), objs.end(),
+          [](const std::shared_ptr<GameObject> &obj) { return typeid(*obj) == typeid(Paddle); });
+
+  if (paddle_obj_it == objs.end()) {
+    return true;
+  }
+
   // I hate shared_ptr
-  std::shared_ptr<Paddle> paddle = std::dynamic_pointer_cast<Paddle>(*std::find_if(objs.begin(), objs.end(),
-          [](const std::shared_ptr<GameObject> &obj) { return typeid(*obj) == typeid(Paddle); }));
+  std::shared_ptr<Paddle> paddle = std::dynamic_pointer_cast<Paddle>(*paddle_obj_it);
 
   // The task says to do this after incrementing the point count, but I really
   // don't see why
@@ -77,7 +83,7 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
 
     setForce(box, paddle);
 
-    if (box->position().z() < paddle->position().z()) {
+    if (box->position().y() < paddle->position().y()) {
       box->alive() = false;
       --_model->remainingLives();
     }
@@ -102,6 +108,11 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
       }
     }
   }
+
+  l.game_model()->points = _model->playerPoints();
+  l.game_model()->lives  = _model->remainingLives();
+
+  return true;
 }
 
 void WorldLogic::addBoxToGame(Logic &l)
@@ -110,7 +121,7 @@ void WorldLogic::addBoxToGame(Logic &l)
   // (╯°□°）╯︵ ┻━┻
   std::default_random_engine rng(std::chrono::system_clock::now().time_since_epoch().count());
 
-  std::uniform_real_distribution<scalar_type> size_exp_dist(-4.f, 3.f);
+  std::uniform_real_distribution<scalar_type> size_exp_dist(1.7f, 3.4f);
   scalar_type size = exp2(size_exp_dist(rng));
 
   vec3_type max_pos(_model->getWorldHalfWidth() - size / 2.f, _model->getWorldHalfHeight() - size / 2.f, HUGE_VALF);
@@ -159,7 +170,7 @@ void WorldLogic::setForce(std::shared_ptr<Box> &box, std::shared_ptr<Paddle> &pa
     for (int xm: {-1, 1}) {
       for (int ym: {-1, 1}) {
         vec3_type paddle_vertex =
-            paddle->position() + vec3_type(xm * paddle->size().x(), 0.f, ym * paddle->size().y());
+            paddle->position() + vec3_type(xm * paddle->size().x(), ym * paddle->size().y(), 0.f);
 
         vec3_type vector = box->position() - paddle_vertex;
         if (vector.length() < min_vector.length()) {
@@ -170,7 +181,7 @@ void WorldLogic::setForce(std::shared_ptr<Box> &box, std::shared_ptr<Paddle> &pa
 
     min_vector.normalize();
 
-    force = off_force_mult * powf(vec3_type(0.f, 0.f, 1.f).dot(min_vector), off_force_exp) * min_vector;
+    force = off_force_mult * powf(vec3_type(0.f, 1.f, 0.f).dot(min_vector), off_force_exp) * min_vector;
   }
 
   box->externalForce() = force * 10.f * box->size() * box->size();
