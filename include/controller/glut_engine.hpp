@@ -16,7 +16,8 @@ namespace controller
       virtual void run() override;
     protected:
       // time interval in which the (virtual) Engine::step function should be called.
-      unsigned int _prefered_timestep_millisec = 30;
+      // I HAET U
+      unsigned int _prefered_timestep_millisec = 1000 / 60;
 
   }; // GlutEngine
 
