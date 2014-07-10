@@ -7,12 +7,15 @@
 #include "flappy_box/controller/flappy_engine.hpp"
 
 #include "flappy_box/model/box.hpp"
+#include "flappy_box/model/game_over.hpp"
+#include "flappy_box/model/paddle.hpp"
 #include "flappy_box/model/world.hpp"
 #include "flappy_box/controller/box_object_logic.hpp"
 #include "flappy_box/controller/paddle_logic.hpp"
 #include "flappy_box/controller/world_logic.hpp"
 #include "flappy_box/view/box_al_audible.hpp"
 #include "flappy_box/view/box_gl_drawable.hpp"
+#include "flappy_box/view/game_over_gl_drawable.hpp"
 #include "flappy_box/view/paddle_gl_drawable.hpp"
 #include "flappy_box/view/world_gl_drawable.hpp"
 #include "view/glut_window.hpp"
@@ -89,6 +92,8 @@ void FlappyEngine::init( int& argc, char** argv )
 
   game_logic() ->   logic_factory().register_module<model::World>([](const std::shared_ptr<model::World> &w) { return std::make_shared<WorldLogic>           (w); });
   gl_renderer()->drawable_factory().register_module<model::World>([](const std::shared_ptr<model::World> &w) { return std::make_shared<view::WorldGlDrawable>(w); });
+
+  gl_renderer()->drawable_factory().register_module<model::GameOver>([](const std::shared_ptr<model::GameOver> &go) { return std::make_shared<view::GameOverGlDrawable>(go); });
 
 
   game_model()->addGameObject(std::make_shared<model::World>(u8"ザ　ワルダ"));
