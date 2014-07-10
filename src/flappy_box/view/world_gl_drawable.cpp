@@ -3,6 +3,7 @@
 #include <dake/gl/shader.hpp>
 #include <dake/math/matrix.hpp>
 
+#include <cstdio>
 #include <stdexcept>
 
 #include "flappy_box/view/world_gl_drawable.hpp"
@@ -59,10 +60,12 @@ WorldGlDrawable::WorldGlDrawable(const std::shared_ptr<const flappy_box::model::
   }
 }
 
+
 WorldGlDrawable::~WorldGlDrawable(void)
 {
   delete va;
 }
+
 
 void WorldGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 {
@@ -81,4 +84,13 @@ void WorldGlDrawable::visualize(GlRenderer &r, GlutWindow &)
   world_prg->uniform<float>("time_step") = time_step;
 
   va->draw(GL_TRIANGLES);
+
+
+  char info[32];
+
+  snprintf(info, sizeof(info), "%i %s", _model->playerPoints(), _model->playerPoints() == 1 ? "point" : "points");
+  r.render_line(vec2(-1.f, 1.f), info);
+
+  snprintf(info, sizeof(info), "%i %s", _model->remainingLives(), _model->remainingLives() == 1 ? "life" : "lives");
+  r.render_line(vec2(-1.f, 1.f - r.character_size().y()), info);
 }

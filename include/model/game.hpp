@@ -28,9 +28,6 @@ namespace model
       std::chrono::steady_clock::time_point const& timestamp() const;
       std::chrono::duration< double > const&        timestep() const;
 
-      // I hate you all
-      int points = 0, lives = 5;
-
   private:
     std::vector< std::shared_ptr< GameObject > >        _objects;
     std::vector< std::shared_ptr< GameObject > > _waitingObjects;
