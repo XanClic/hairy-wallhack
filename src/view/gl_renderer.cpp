@@ -121,7 +121,9 @@ void GlRenderer::init_with_context(void)
   *char_prg << char_fsh;
 
   char_prg->bind_attrib("in_pos", 0);
-  char_prg->bind_frag("out_color", 0);
+
+  char_prg->bind_frag("out_mi", 0);
+  char_prg->bind_frag("out_hi", 1);
 
   if (!char_prg->link()) {
     throw std::runtime_error("Could not link character rendering program");
@@ -197,6 +199,15 @@ void GlRenderer::visualize_model( GlutWindow& w )
   }
 
 
+  char info[32];
+
+  snprintf(info, sizeof(info), "%i %s", game_model()->points, game_model()->points == 1 ? "point" : "points");
+  render_line(vec2(-1.f, 1.f), info);
+
+  snprintf(info, sizeof(info), "%i %s", game_model()->lives, game_model()->lives == 1 ? "life" : "lives");
+  render_line(vec2(-1.f, 1.f - char_size.y()), info);
+
+
   const gl::texture *input_tex = &(*fb)[1];
   for (int i = 0, cur_fb = 0; i < 8; i++, cur_fb ^= 1) {
     blur_prg[cur_fb]->use();
@@ -227,19 +238,6 @@ void GlRenderer::visualize_model( GlutWindow& w )
   fb_prg->uniform<gl::texture>("fb_hi") = *input_tex;
 
   fb_vertices->draw(GL_TRIANGLE_STRIP);
-
-
-  glDisable(GL_DEPTH_TEST);
-
-  char info[32];
-
-  snprintf(info, sizeof(info), "%i points", game_model()->points);
-  render_line(vec2(-1.f, 1.f), info);
-
-  snprintf(info, sizeof(info), "%i lives", game_model()->lives);
-  render_line(vec2(-1.f, 1.f - char_size.y()), info);
-
-  glEnable(GL_DEPTH_TEST);
 
 
   glutSwapBuffers();
