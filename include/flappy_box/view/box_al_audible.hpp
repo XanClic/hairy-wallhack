@@ -7,16 +7,15 @@ namespace flappy_box
 {
   namespace view
   {
-    class BoxAlAudible : public ::view::AlRenderer::Audible
+    class BoxAlAudible: public ::view::AlRenderer::Audible
     {
       public:
-        BoxAlAudible( std::shared_ptr< model::Box > const& );
+        BoxAlAudible(const std::shared_ptr<model::Box> &);
 
-        virtual void auralize( ::view::AlRenderer& ) override;
+        virtual void auralize(::view::AlRenderer &) override;
 
       private:
-        std::shared_ptr< model::Box const > _model;
-        
+        std::shared_ptr<const model::Box> _model;
     }; // BoxAlAudible
   }
 }

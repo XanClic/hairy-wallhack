@@ -134,6 +134,12 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
     }
   }
 
+  if (paddle) {
+    _model->gameSpeed() = 1.f + _model->playerPoints() / 10000.f;
+  } else {
+    _model->gameSpeed() = .3f;
+  }
+
   return true;
 }
 
@@ -148,7 +154,7 @@ void WorldLogic::addBoxToGame(Logic &l)
   std::uniform_real_distribution<scalar_type> x_dist(-max_pos.x(), max_pos.x());
   scalar_type x = x_dist(rng);
 
-  std::shared_ptr<Box> box(new Box);
+  std::shared_ptr<Box> box(new Box("Box", !_model->remainingLives()));
   box->size() = size;
   box->position() = vec3_type(x, 0.f, 0.f);
   box->maxPosition() = max_pos;
@@ -173,8 +179,8 @@ static bool in_bounding_box(const vec3_type &point, const vec3_type &lower_left,
 void WorldLogic::setForce(std::shared_ptr<Box> &box, std::shared_ptr<Paddle> &paddle)
 {
   if (!paddle) {
-    std::uniform_real_distribution<scalar_type> x_dist(-3.f, 3.f), y_dist(-3.f, 3.f);
-    box->externalForce() += vec3_type(x_dist(rng), y_dist(rng), 0.f);
+    std::uniform_real_distribution<scalar_type> x_dist(-20.f, 20.f), y_dist(-5.f, 25.f);
+    box->externalForce() = vec3_type(x_dist(rng), y_dist(rng), 0.f);
 
     return;
   }
@@ -231,7 +237,7 @@ void WorldLogic::restartGame(Logic &l)
   _model->remainingLives() = 5;
 
   std::shared_ptr<Paddle> user_paddle(new Paddle("PlayerPaddle"));
-  user_paddle->size() = vec3_type(10.f, 2.5f, 1.f);
+  user_paddle->size() = vec3_type(10.f, 2.5f, 10.f);
   user_paddle->position() = vec3_type(0.f, -_model->getWorldHalfHeight() + user_paddle->size().y() * 2.f, 0.f);
   user_paddle->maxPosition() = vec3_type(_model->getWorldHalfWidth() - user_paddle->size().x() / 2.f, _model->getWorldHalfHeight(), HUGE_VALF);
 

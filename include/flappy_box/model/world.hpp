@@ -24,10 +24,14 @@ namespace flappy_box
         distance_type getWorldHalfHeight(void) const { return 50.f; }
         distance_type getWorldHalfWidth(void) const { return 80.f; }
 
+        scalar_type gameSpeed(void) const { return game_speed; }
+        scalar_type &gameSpeed(void) { return game_speed; }
+
 
       private:
         int _playerPoints   = 0;
         int _remainingLives = 5;
+        float game_speed = 1.f;
     };
   }
 }

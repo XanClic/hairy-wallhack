@@ -15,8 +15,11 @@
 #include "flappy_box/controller/world_logic.hpp"
 #include "flappy_box/view/box_al_audible.hpp"
 #include "flappy_box/view/box_gl_drawable.hpp"
+#include "flappy_box/view/game_over_al_audible.hpp"
 #include "flappy_box/view/game_over_gl_drawable.hpp"
+#include "flappy_box/view/paddle_al_audible.hpp"
 #include "flappy_box/view/paddle_gl_drawable.hpp"
+#include "flappy_box/view/world_al_audible.hpp"
 #include "flappy_box/view/world_gl_drawable.hpp"
 #include "view/glut_window.hpp"
 
@@ -88,11 +91,14 @@ void FlappyEngine::init( int& argc, char** argv )
   gl_renderer()->drawable_factory().register_module<model::Box>([](const std::shared_ptr<model::Box> &b ) { return std::make_shared<view::BoxGlDrawable>(b); });
 
   game_logic() ->   logic_factory().register_module<model::Paddle>([](const std::shared_ptr<model::Paddle> &p) { return std::make_shared<PaddleLogic>           (p); });
+  al_renderer()-> audible_factory().register_module<model::Paddle>([](const std::shared_ptr<model::Paddle> &p) { return std::make_shared<view::PaddleAlAudible> (p); });
   gl_renderer()->drawable_factory().register_module<model::Paddle>([](const std::shared_ptr<model::Paddle> &p) { return std::make_shared<view::PaddleGlDrawable>(p); });
 
   game_logic() ->   logic_factory().register_module<model::World>([](const std::shared_ptr<model::World> &w) { return std::make_shared<WorldLogic>           (w); });
+  al_renderer()-> audible_factory().register_module<model::World>([](const std::shared_ptr<model::World> &w) { return std::make_shared<view::WorldAlAudible> (w); });
   gl_renderer()->drawable_factory().register_module<model::World>([](const std::shared_ptr<model::World> &w) { return std::make_shared<view::WorldGlDrawable>(w); });
 
+  al_renderer()-> audible_factory().register_module<model::GameOver>([](const std::shared_ptr<model::GameOver> &go) { return std::make_shared<view::GameOverAlAudible> (go); });
   gl_renderer()->drawable_factory().register_module<model::GameOver>([](const std::shared_ptr<model::GameOver> &go) { return std::make_shared<view::GameOverGlDrawable>(go); });
 
 

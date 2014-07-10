@@ -47,6 +47,9 @@ void GameOverGlDrawable::render_centered_string(GlRenderer &r, float yofs, const
 
 void GameOverGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 {
+  // i'm so genius
+  r.light_position() = vec3(0.f, 0.f, 5.f);
+
   render_centered_string(r, 2.f, "GAME OVER!", vec3(1.f, 0.f, 0.f));
 
   char points[64];

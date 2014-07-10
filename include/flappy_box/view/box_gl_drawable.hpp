@@ -4,6 +4,8 @@
 
 # include "flappy_box/model/box.hpp"
 
+#include "math.hpp"
+
 namespace flappy_box
 {
   namespace view
@@ -18,6 +20,7 @@ namespace flappy_box
 
       private:
         std::shared_ptr< model::Box const > _model;
+        scalar_type lifetime = 0.f;
 
     }; // BoxGlDrawable
   }

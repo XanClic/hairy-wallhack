@@ -20,7 +20,7 @@ static bool resources_valid;
 
 static std::vector<gl::obj_section> box_sections;
 static std::vector<gl::vertex_array *> box_vas;
-static gl::program *box_prg;
+static gl::program *box_prg, *box_fog_prg;
 
 
 BoxGlDrawable::BoxGlDrawable(const std::shared_ptr<Box> &b):
@@ -55,19 +55,24 @@ BoxGlDrawable::BoxGlDrawable(const std::shared_ptr<Box> &b):
   box_sections = std::move(box.sections);
 
 
-  gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
+  gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT), fog_fsh(gl::shader::FRAGMENT);
 
   vsh.load("res/box_vsh.glsl");
   fsh.load("res/box_fsh.glsl");
+  fog_fsh.load("res/box_fog_fsh.glsl");
 
-  if (!vsh.compile() || !fsh.compile()) {
+  if (!vsh.compile() || !fsh.compile() || !fog_fsh.compile()) {
     throw std::runtime_error("Could not compile box shaders");
   }
 
   box_prg = new gl::program;
+  box_fog_prg = new gl::program;
 
   *box_prg << vsh;
   *box_prg << fsh;
+
+  *box_fog_prg << vsh;
+  *box_fog_prg << fog_fsh;
 
   box_prg->bind_attrib("in_position",  0);
   box_prg->bind_attrib("in_tex_coord", 1);
@@ -76,10 +81,15 @@ BoxGlDrawable::BoxGlDrawable(const std::shared_ptr<Box> &b):
   box_prg->bind_frag("out_mi", 0);
   box_prg->bind_frag("out_hi", 1);
 
-  if (!box_prg->link()) {
-    delete box_prg;
+  box_fog_prg->bind_attrib("in_position",  0);
+  box_fog_prg->bind_attrib("in_tex_coord", 1);
+  box_fog_prg->bind_attrib("in_normal",    2);
 
-    throw std::runtime_error("Could not link box program");
+  box_fog_prg->bind_frag("out_mi", 0);
+  box_fog_prg->bind_frag("out_hi", 1);
+
+  if (!box_prg->link() || !box_fog_prg->link()) {
+    throw std::runtime_error("Could not link box programs");
   }
 
 
@@ -89,19 +99,21 @@ BoxGlDrawable::BoxGlDrawable(const std::shared_ptr<Box> &b):
 BoxGlDrawable::~BoxGlDrawable()
 {}
 
-void BoxGlDrawable::visualize(GlRenderer &r, GlutWindow &w)
+void BoxGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 {
   mat4 mv = mat4::identity();
-  mv.translate(_model->position());
+  mv.translate(_model->position() + vec3(0.f, 0.f, -10.f / lifetime));
   mv.rotate(_model->angle(), vec3(0.f, 0.f, 1.f));
   mv.scale(vec3(_model->size(), _model->size(), _model->size()));
 
-  box_prg->use();
-  box_prg->uniform<mat4>("mv") = mv;
-  box_prg->uniform<mat4>("proj") = r.projection() * r.camera();
-  box_prg->uniform<mat3>("norm_mat") = mat3(mv).transposed_inverse();
+  gl::program *prg = lifetime > 1.f ? box_prg : box_fog_prg;
 
-  box_prg->uniform<vec3>("light_pos") = r.light_position();
+  prg->use();
+  prg->uniform<mat4>("mv") = mv;
+  prg->uniform<mat4>("proj") = r.projection() * r.camera();
+  prg->uniform<mat3>("norm_mat") = mat3(mv).transposed_inverse();
+
+  prg->uniform<vec3>("light_pos") = r.light_position();
 
   for (bool lines: {false, true}) {
     if (lines) {
@@ -109,19 +121,21 @@ void BoxGlDrawable::visualize(GlRenderer &r, GlutWindow &w)
       glLineWidth(5.f);
     }
 
-    box_prg->uniform<float>("enlightenment") = (_model->maxPosition().y() - _model->position().y()) / 10.f + 1.f;
+    prg->uniform<float>("enlightenment") = (_model->maxPosition().y() - _model->position().y()) / 10.f + 1.f;
 
     for (size_t i = 0; i < box_sections.size(); i++) {
       if (box_sections[i].material.tex) {
         box_sections[i].material.tex->bind();
-        box_prg->uniform<gl::texture>("tex") = *box_sections[i].material.tex;
+        prg->uniform<gl::texture>("tex") = *box_sections[i].material.tex;
       }
-      box_prg->uniform<vec3>("diffuse_base") = box_sections[i].material.diffuse;
-      box_prg->uniform<vec3>("ambient") = lines ? vec3(box_sections[i].material.ambient) : vec3(0.f, 0.f, 0.f);
+      prg->uniform<vec3>("diffuse_base") = box_sections[i].material.diffuse;
+      prg->uniform<vec3>("ambient") = lines ? vec3(box_sections[i].material.ambient) : vec3(0.f, 0.f, 0.f);
 
       box_vas[i]->draw(GL_TRIANGLES);
     }
   }
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+  lifetime += r.game_model()->timestep().count();
 }

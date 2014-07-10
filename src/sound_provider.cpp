@@ -28,7 +28,7 @@ void check_state_thread ( ALuint source, ALint state ) // <-- vorgeben?
     {
       // free source
       alDeleteSources( 1, &source );
-      std::clog<< alutGetErrorString(alutGetError())<<" - DELETED SOURCE"<<std::endl;;
+      // std::clog<< alutGetErrorString(alutGetError())<<" - DELETED SOURCE"<<std::endl;;
       return;
     }
   }
