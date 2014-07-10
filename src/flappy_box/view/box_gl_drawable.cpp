@@ -112,8 +112,10 @@ void BoxGlDrawable::visualize(GlRenderer &r, GlutWindow &w)
     box_prg->uniform<float>("enlightenment") = (_model->maxPosition().y() - _model->position().y()) / 10.f + 1.f;
 
     for (size_t i = 0; i < box_sections.size(); i++) {
-      box_sections[i].material.tex->bind();
-      box_prg->uniform<gl::texture>("tex") = *box_sections[i].material.tex;
+      if (box_sections[i].material.tex) {
+        box_sections[i].material.tex->bind();
+        box_prg->uniform<gl::texture>("tex") = *box_sections[i].material.tex;
+      }
       box_prg->uniform<vec3>("diffuse_base") = box_sections[i].material.diffuse;
       box_prg->uniform<vec3>("ambient") = lines ? vec3(box_sections[i].material.ambient) : vec3(0.f, 0.f, 0.f);
 

@@ -83,7 +83,7 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
 
     setForce(box, paddle);
 
-    if (box->position().y() < paddle->position().y()) {
+    if (box->position().y() - box->size() / 2.f < paddle->position().y()) {
       box->alive() = false;
       --_model->remainingLives();
     }
@@ -162,7 +162,7 @@ void WorldLogic::setForce(std::shared_ptr<Box> &box, std::shared_ptr<Paddle> &pa
 
   if (in_bounding_box(box->position(), pll, pur)) {
     force = vec3_type(0.f, 1.f, 0.f);
-  } else if (box->position().y() > paddle->position().y()) { // "oberhalb", not "oberhalb oder auf gleicher Höhe"
+  } else if (box->position().y() - box->size() / 2.f > paddle->position().y()) { // "oberhalb", not "oberhalb oder auf gleicher Höhe"
     vec3_type min_vector(HUGE_VALF, HUGE_VALF, HUGE_VALF);
 
     // Only consider vertices, no edges (the tasks requires this)
