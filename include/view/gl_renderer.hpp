@@ -50,6 +50,9 @@ namespace view
       void render_line(dake::math::vec2 pos, const char *string, dake::math::vec3 color = dake::math::vec3(1.f, 1.f, 1.f));
       const dake::math::vec2 &character_size(void) const { return char_size; }
 
+      void parameters(long passes, bool bloom_lq);
+      bool has_bloom(void) const { return bloom_blur_passes; }
+
       virtual void visualize_model( GlutWindow& );
       virtual void resize( GlutWindow& );
 
@@ -67,6 +70,9 @@ namespace view
 
       dake::math::vec2 char_size;
       unsigned width, height;
+
+      bool bloom_use_lq = false;
+      long bloom_blur_passes = 5;
 
   }; // GlRenderer
 
