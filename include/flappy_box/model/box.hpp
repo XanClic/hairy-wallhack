@@ -12,7 +12,7 @@ namespace flappy_box
   {
     class Box: public ::model::GameObject {
       public:
-        Box(const std::string & = "Box");
+        Box(const std::string & = "Box", bool mute = false);
 
         scalar_type &angle(void) { return _angle; }
         scalar_type angle(void) const { return _angle; }
@@ -41,6 +41,8 @@ namespace flappy_box
         scalar_type &rotVelocity(void) { return _rotVelocity; }
         scalar_type rotVelocity(void) const { return _rotVelocity; }
 
+        bool mute(void) const { return is_mute; }
+
 
     private:
         scalar_type           _angle = 0.f;
@@ -52,6 +54,8 @@ namespace flappy_box
         scalar_type _rotAcceleration = 0.f; // only in y-direction
         scalar_type     _rotVelocity = 0.f; // only in y-direction
         vec3_type     _externalForce = vec3_type(0.f, 0.f, 0.f); // vector containing the external force (direction is normalized, length is force)
+
+        bool is_mute;
     }; // Box
   } // model::
 } // flappy_box::

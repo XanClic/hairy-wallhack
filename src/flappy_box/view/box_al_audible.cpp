@@ -11,24 +11,24 @@
 using namespace ::flappy_box::view;
  
 
-BoxAlAudible::BoxAlAudible( std::shared_ptr< ::flappy_box::model::Box > const& b )
-: _model( b )
+BoxAlAudible::BoxAlAudible(const std::shared_ptr<::flappy_box::model::Box> &b):
+  _model(b)
 {
-  // normalized x-coordinate of box
-  double x_pos = b->position()[0] / b->maxPosition()[0];
-  
-  // play the sound
-  SoundProvider::getInstance()->playSound("birth.wav", x_pos, 0.2, 1.0, false);
+  if (!_model->mute()) {
+    // normalized x-coordinate of box
+    double x_pos = b->position()[0] / b->maxPosition()[0];
+
+    // play the sound
+    SoundProvider::getInstance()->playSound("birth.wav", x_pos, 0.2, 1.0, false);
+  }
 }
 
 
-void BoxAlAudible::auralize( ::view::AlRenderer& renderer )
+void BoxAlAudible::auralize(::view::AlRenderer &)
 {
-  if (  !_model->alive() )
-  {
+  if (!_model->alive() && !_model->mute()) {
     // normalized x-coordinate of box
     double x_pos = _model->position()[0] / _model->maxPosition()[0];
     SoundProvider::getInstance()->playSound("crash.wav", x_pos, 0.5, 1.0, false);
   }
-  
 }

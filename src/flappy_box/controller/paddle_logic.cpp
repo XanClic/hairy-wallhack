@@ -7,7 +7,6 @@
 static const scalar_type player_accel_scale = 1000.f;
 static const scalar_type accel_damping = .0f;
 static const scalar_type vlcty_damping = .9f;
-static const scalar_type max_vlcty = 200.f;
 
 
 using namespace controller;
@@ -31,8 +30,8 @@ bool PaddleLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt
   _model->acceleration() = _model->acceleration() * accel_damping + _model->playerControl() * player_accel_scale;
 
   _model->velocity() = _model->velocity() * vlcty_damping + _model->acceleration() * timestep_sec;
-  if (_model->velocity().length() > max_vlcty) {
-    _model->velocity() *= max_vlcty / _model->velocity().length();
+  if (_model->velocity().length() > _model->maxVelocity()) {
+    _model->velocity() *= _model->maxVelocity() / _model->velocity().length();
   }
 
   _model->position() += _model->velocity() * timestep_sec;

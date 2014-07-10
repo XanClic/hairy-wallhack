@@ -6,7 +6,7 @@ include(ExternalProject)
 
 include_directories( include )
 
-add_definitions( "--std=c++11" )
+add_definitions("--std=c++11 -Wall -Wextra")
 # add_definitions( -DDEBUG_VISUALIZATION )
 set( CMAKE_BUILD_TYPE "DEBUG" )
 # look for Cmake modules in project directory
@@ -103,8 +103,11 @@ add_executable( audiophile src/main.cpp
                            src/flappy_box/controller/world_logic.cpp
                            src/flappy_box/view/box_al_audible.cpp
                            src/flappy_box/view/box_gl_drawable.cpp
+                           src/flappy_box/view/game_over_al_audible.cpp
                            src/flappy_box/view/game_over_gl_drawable.cpp
+                           src/flappy_box/view/paddle_al_audible.cpp
                            src/flappy_box/view/paddle_gl_drawable.cpp
+                           src/flappy_box/view/world_al_audible.cpp
                            src/flappy_box/view/world_gl_drawable.cpp
 
                            # sound management

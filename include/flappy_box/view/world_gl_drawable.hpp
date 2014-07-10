@@ -23,6 +23,7 @@ namespace flappy_box
 
         dake::gl::vertex_array *va;
         float time_step = 0.f;
+        bool was_dead = false;
     };
   }
 }

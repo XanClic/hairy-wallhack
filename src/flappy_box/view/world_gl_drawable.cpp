@@ -79,8 +79,15 @@ void WorldGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 
   world_prg->uniform<vec3>("light_pos") = r.light_position();
 
-  // FIXME (reset)
-  time_step += r.game_model()->timestep().count() * 100.f;
+  if (!_model->remainingLives()) {
+    was_dead = true;
+  } else if (was_dead) {
+    was_dead = false;
+    time_step = 0.f;
+  }
+
+  // FIXME (periodic reset)
+  time_step += r.game_model()->timestep().count() * _model->gameSpeed() * 150.f;
   world_prg->uniform<float>("time_step") = time_step;
 
   va->draw(GL_TRIANGLES);

@@ -38,7 +38,7 @@ PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
   for (int v = 0; v < vortex_cnt; v++) {
     for (int s = 0; s < vortex_line_len; s++) {
       vortex_dat[v][s][0] = _model->position();
-      vortex_dat[v][s][1] = _model->position();
+      vortex_dat[v][s][1] = _model->position() + vec3(0.f, 1.5f * r1, 0.f);
     }
   }
 
@@ -238,7 +238,7 @@ void PaddleGlDrawable::updateVBOs(void)
 }
 
 
-void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &w)
+void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 {
   if (_model->size() != size_for_r) {
     updateVBOs();
@@ -280,9 +280,13 @@ void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &w)
   blade_va.draw(GL_TRIANGLES);
 
 
+  // No need to disable setting the depth buffer; this is drawn last anyway
+  // (because I'm good)
+  // Actually, this *must* write to the depth buffer or the fog will overwrite
+  // it
+
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-  glDepthMask(false);
 
   vortex_prg->use();
   vortex_prg->uniform<mat4>("proj") = r.projection() * r.camera();
@@ -312,6 +316,5 @@ void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &w)
     vortex_vas[v].draw(GL_TRIANGLE_STRIP);
   }
 
-  glDepthMask(true);
   glDisable(GL_BLEND);
 }
