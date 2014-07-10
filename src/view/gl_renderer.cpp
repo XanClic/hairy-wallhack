@@ -286,10 +286,30 @@ void GlRenderer::render_character(vec2 pos, unsigned char c, vec3 color)
 void GlRenderer::render_line(vec2 pos, const char *string, vec3 color)
 {
   while (*string) {
-    render_character(pos, *string, color);
-    pos.x() += 6.f / 5.f * char_size.x();
+    int chr = *string;
+    if (chr & 0x80) {
+      if ((chr & 0xe0) == 0xc0) {
+        if ((string[1] & 0xc0) == 0x80) {
+          chr = ((chr & ~0xe0) << 6) | (string[1] & ~0xc0);
+          string += 2;
+        } else {
+          chr = '?';
+          string++;
+        }
+      } else {
+        chr = '?';
+        string++;
+      }
+    } else {
+      string++;
+    }
 
-    string++;
+    if (chr > 255) {
+      chr = '?';
+    }
+
+    render_character(pos, chr, color);
+    pos.x() += 6.f / 5.f * char_size.x();
   }
 }
 
