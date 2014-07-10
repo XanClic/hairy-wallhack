@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <memory>
 #include <random>
 
@@ -25,15 +26,39 @@ using namespace flappy_box::model;
 
 
 WorldLogic::WorldLogic(const std::shared_ptr<flappy_box::model::World> &world_ptr):
-  _model(world_ptr)
+  _model(world_ptr), rng(std::chrono::system_clock::now().time_since_epoch().count())
 {}
 
 
 bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
 {
+  if (evt.key == 'r') {
+    _shallRestartTheGame = true;
+  }
+
   if (_shallRestartTheGame) {
     restartGame(l);
   }
+
+
+  // Oh my beloved Madoka, you can't be serious
+  const auto &objs = l.game_model()->objects();
+  auto paddle_obj_it = std::find_if(objs.begin(), objs.end(),
+          [](const std::shared_ptr<GameObject> &obj) { return typeid(*obj) == typeid(Paddle); });
+
+  std::shared_ptr<Paddle> paddle(nullptr);
+
+  if (paddle_obj_it != objs.end()) {
+    paddle = std::dynamic_pointer_cast<Paddle>(*paddle_obj_it);
+
+    if (!paddle->alive()) {
+      paddle = nullptr;
+    }
+  }
+
+
+  // paddle == nullptr means Game Over
+
 
   scalar_type timestep_sec = l.game_model()->timestep().count();
 
@@ -41,36 +66,29 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
   add_box_interval_timer += timestep_sec;
 
   while (add_box_interval_timer >= add_box_interval) {
-    addBoxToGame(l);
+    if (paddle || (box_count < 20)) {
+      addBoxToGame(l);
+    }
     add_box_interval_timer -= add_box_interval;
   }
 
-  // Oh my beloved Madoka, you can't be serious
-  const auto &objs = l.game_model()->objects();
-  auto paddle_obj_it = std::find_if(objs.begin(), objs.end(),
-          [](const std::shared_ptr<GameObject> &obj) { return typeid(*obj) == typeid(Paddle); });
-
-  if (paddle_obj_it == objs.end()) {
-    return true;
-  }
-
-  // I hate shared_ptr
-  std::shared_ptr<Paddle> paddle = std::dynamic_pointer_cast<Paddle>(*paddle_obj_it);
-
   // The task says to do this after incrementing the point count, but I really
   // don't see why
-  if (_model->remainingLives() <= 0) {
+  if ((_model->remainingLives() <= 0) && paddle) {
     paddle->alive() = false;
     l.game_model()->addGameObject(std::make_shared<GameOver>("Game Over", _model->playerPoints()));
   }
 
   // Keep the points exact
   static scalar_type player_points_inc;
-  player_points_inc += timestep_sec;
 
-  int inc_now = static_cast<int>(player_points_inc * 10.f);
-  _model->playerPoints() += inc_now;
-  player_points_inc -= static_cast<scalar_type>(inc_now) / 10.f;
+  if (paddle) {
+    player_points_inc += timestep_sec;
+
+    int inc_now = static_cast<int>(player_points_inc * 10.f);
+    _model->playerPoints() += inc_now;
+    player_points_inc -= static_cast<scalar_type>(inc_now) / 10.f;
+  }
 
   for (std::shared_ptr<GameObject> obj: objs) {
     if (!obj->alive()) {
@@ -84,8 +102,13 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
 
     setForce(box, paddle);
 
+    if (!paddle) {
+      continue;
+    }
+
     if (box->position().y() - box->size() / 2.f < paddle->position().y()) {
       box->alive() = false;
+      box_count--;
       --_model->remainingLives();
     }
 
@@ -103,6 +126,7 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
       if ((box->position() - ibox->position()).length() < box->size() + ibox->size()) {
         box->alive() = false;
         ibox->alive() = false;
+        box_count -= 2;
 
         // EXTRA MONSTER POINTS
         _model->playerPoints() += hit_extra_points;
@@ -116,10 +140,6 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
 
 void WorldLogic::addBoxToGame(Logic &l)
 {
-  // I'm not so sure about this initialization on each call
-  // (╯°□°）╯︵ ┻━┻
-  std::default_random_engine rng(std::chrono::system_clock::now().time_since_epoch().count());
-
   std::uniform_real_distribution<scalar_type> size_exp_dist(1.7f, 3.4f);
   scalar_type size = exp2(size_exp_dist(rng));
 
@@ -134,6 +154,7 @@ void WorldLogic::addBoxToGame(Logic &l)
   box->maxPosition() = max_pos;
 
   l.game_model()->addGameObject(box);
+  box_count++;
 }
 
 
@@ -151,6 +172,13 @@ static bool in_bounding_box(const vec3_type &point, const vec3_type &lower_left,
 
 void WorldLogic::setForce(std::shared_ptr<Box> &box, std::shared_ptr<Paddle> &paddle)
 {
+  if (!paddle) {
+    std::uniform_real_distribution<scalar_type> x_dist(-3.f, 3.f), y_dist(-3.f, 3.f);
+    box->externalForce() += vec3_type(x_dist(rng), y_dist(rng), 0.f);
+
+    return;
+  }
+
   // I like how this function completely disregards the size of the box in
   // regard to how box and paddle overlap
 
@@ -194,6 +222,9 @@ void WorldLogic::restartGame(Logic &l)
   for (const std::shared_ptr<GameObject> &obj: l.game_model()->objects()) {
     obj->alive() = false;
   }
+
+  add_box_interval_timer = 0.f;
+  box_count = 0;
 
   _model->alive() = true;
   _model->playerPoints() = 0;

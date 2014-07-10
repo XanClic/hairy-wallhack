@@ -3,6 +3,8 @@
 
 #include <dake/gl/vertex_array.hpp>
 
+#include <memory>
+
 #include "view/gl_renderer.hpp"
 #include "flappy_box/model/world.hpp"
 
