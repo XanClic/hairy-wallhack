@@ -28,6 +28,7 @@ WorldLogic::WorldLogic(const std::shared_ptr<flappy_box::model::World> &world_pt
   _model(world_ptr)
 {}
 
+
 bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
 {
   if (_shallRestartTheGame) {
@@ -109,11 +110,9 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
     }
   }
 
-  l.game_model()->points = _model->playerPoints();
-  l.game_model()->lives  = _model->remainingLives();
-
   return true;
 }
+
 
 void WorldLogic::addBoxToGame(Logic &l)
 {
@@ -137,6 +136,7 @@ void WorldLogic::addBoxToGame(Logic &l)
   l.game_model()->addGameObject(box);
 }
 
+
 static bool in_bounding_box(const vec3_type &point, const vec3_type &lower_left, const vec3_type &upper_right)
 {
   for (int i = 0; i < 3; i++) {
@@ -147,6 +147,7 @@ static bool in_bounding_box(const vec3_type &point, const vec3_type &lower_left,
 
   return true;
 }
+
 
 void WorldLogic::setForce(std::shared_ptr<Box> &box, std::shared_ptr<Paddle> &paddle)
 {
@@ -186,6 +187,7 @@ void WorldLogic::setForce(std::shared_ptr<Box> &box, std::shared_ptr<Paddle> &pa
 
   box->externalForce() = force * 10.f * box->size() * box->size();
 }
+
 
 void WorldLogic::restartGame(Logic &l)
 {

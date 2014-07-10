@@ -221,15 +221,6 @@ void GlRenderer::visualize_model( GlutWindow& w )
   }
 
 
-  char info[32];
-
-  snprintf(info, sizeof(info), "%i %s", game_model()->points, game_model()->points == 1 ? "point" : "points");
-  render_line(vec2(-1.f, 1.f), info);
-
-  snprintf(info, sizeof(info), "%i %s", game_model()->lives, game_model()->lives == 1 ? "life" : "lives");
-  render_line(vec2(-1.f, 1.f - char_size.y()), info);
-
-
   if (bloom_blur_passes) {
     const gl::texture *input_tex = &(*fb)[1];
     for (int i = 0, cur_fb = 0; i < bloom_blur_passes * 2; i++, cur_fb ^= 1) {
