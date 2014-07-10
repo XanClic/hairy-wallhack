@@ -99,7 +99,7 @@ PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
     throw std::runtime_error("Could not link vortex program");
   }
 
-  vortex_prg->uniform<vec3>("ambient") = vec3(.9f, .7f, .3f);
+  vortex_prg->uniform<vec3>("ambient") = vec3(1.f, .6f, .3f);
 
 
   shaders_valid = true;
@@ -286,6 +286,7 @@ void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &w)
 
   vortex_prg->use();
   vortex_prg->uniform<mat4>("proj") = r.projection() * r.camera();
+  vortex_prg->uniform<float>("base_alpha") = r.has_bloom() ? .05f : .4f;
 
   for (int v = 0; v < vortex_cnt; v++) {
     for (int s = vortex_line_len - 1; s > 0; s--) {

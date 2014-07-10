@@ -42,6 +42,14 @@ GlRenderer::delegate_factory_type const& GlRenderer::drawable_factory() const
   return _drawable_factory;
 }
 
+
+void GlRenderer::parameters(long passes, bool bloom_lq)
+{
+    bloom_use_lq = bloom_lq;
+    bloom_blur_passes = passes;
+}
+
+
 void GlRenderer::init_with_context(void)
 {
   glEnable(GL_DEPTH_TEST);
@@ -58,6 +66,13 @@ void GlRenderer::init_with_context(void)
 
   blur_fbs[0] = std::make_shared<gl::framebuffer>(1);
   blur_fbs[1] = std::make_shared<gl::framebuffer>(1);
+
+
+  if (!bloom_use_lq) {
+    fb->color_format(1, GL_RGBA16F);
+    blur_fbs[0]->color_format(0, GL_RGBA16F);
+    blur_fbs[1]->color_format(0, GL_RGBA16F);
+  }
 
 
   gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
@@ -148,27 +163,34 @@ void GlRenderer::init_with_context(void)
 
 void GlRenderer::visualize_model( GlutWindow& w )
 {
-  // clear normal color texture with white
+  if (bloom_blur_passes) {
+    // clear normal color texture with white
 
-  fb->mask(1);
-  fb->bind();
+    fb->mask(1);
+    fb->bind();
 
-  glClearColor(.7f, .7f, .7f, 1.f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-  // clear bright color texture with black
-
-  fb->unmask(1);
-  fb->mask(0);
-  fb->bind();
-
-  glClearColor(0.f, 0.f, 0.f, 1.f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(.7f, .7f, .7f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-  fb->unmask(0);
-  fb->bind();
+    // clear bright color texture with black
+
+    fb->unmask(1);
+    fb->mask(0);
+    fb->bind();
+
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+    fb->unmask(0);
+    fb->bind();
+  } else {
+    gl::framebuffer::unbind();
+
+    glClearColor(.7f, .7f, .7f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  }
 
 
   cam = mat4::identity().translated(vec3(0.f, 0.f, -100.f));
@@ -208,36 +230,38 @@ void GlRenderer::visualize_model( GlutWindow& w )
   render_line(vec2(-1.f, 1.f - char_size.y()), info);
 
 
-  const gl::texture *input_tex = &(*fb)[1];
-  for (int i = 0, cur_fb = 0; i < 8; i++, cur_fb ^= 1) {
-    blur_prg[cur_fb]->use();
-    blur_fbs[cur_fb]->bind();
+  if (bloom_blur_passes) {
+    const gl::texture *input_tex = &(*fb)[1];
+    for (int i = 0, cur_fb = 0; i < bloom_blur_passes * 2; i++, cur_fb ^= 1) {
+      blur_prg[cur_fb]->use();
+      blur_fbs[cur_fb]->bind();
 
-    input_tex->bind();
-    blur_prg[cur_fb]->uniform<gl::texture>("input_tex") = *input_tex;
-    blur_prg[cur_fb]->uniform<float>("epsilon") = exp2((8 - i / 2) / 2.f) / (cur_fb ? height : width);
+      input_tex->bind();
+      blur_prg[cur_fb]->uniform<gl::texture>("input_tex") = *input_tex;
+      blur_prg[cur_fb]->uniform<float>("epsilon") = exp2((8 - i / 2) / 2.f) / (cur_fb ? height : width);
+
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+      fb_vertices->draw(GL_TRIANGLE_STRIP);
+
+      input_tex = & (*blur_fbs[cur_fb])[0];
+    }
+
+
+    gl::framebuffer::unbind();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    fb_prg->use();
+
+    (*fb)[0].bind();
+    input_tex->bind();
+
+    fb_prg->uniform<gl::texture>("fb_mi") = (*fb)[0];
+    fb_prg->uniform<gl::texture>("fb_hi") = *input_tex;
+
     fb_vertices->draw(GL_TRIANGLE_STRIP);
-
-    input_tex = & (*blur_fbs[cur_fb])[0];
   }
-
-
-  gl::framebuffer::unbind();
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  fb_prg->use();
-
-  (*fb)[0].bind();
-  input_tex->bind();
-
-  fb_prg->uniform<gl::texture>("fb_mi") = (*fb)[0];
-  fb_prg->uniform<gl::texture>("fb_hi") = *input_tex;
-
-  fb_vertices->draw(GL_TRIANGLE_STRIP);
 
 
   glutSwapBuffers();

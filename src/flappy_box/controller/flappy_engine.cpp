@@ -1,3 +1,7 @@
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <memory>
 
 #include "flappy_box/controller/flappy_engine.hpp"
@@ -36,6 +40,44 @@ void FlappyEngine::init( int& argc, char** argv )
   GlutEngine::init( argc, argv );
 
   alutInit( &argc, argv );
+
+
+  // TODO: Remove arguments
+  long passes = 5;
+  bool bloom_lq = false;
+
+  for (int i = 1; i < argc; i++) {
+      if (!strcmp(argv[i], "--help")) {
+          printf("Parameters:\n");
+          printf("  --blur-passes=n: Sets the number of bloom blur passes (default: 5);\n");
+          printf("                   use 0 to disable bloom\n");
+          printf("  --bloom-lq:      Reduces the bloom quality by using an integer FBO\n");
+
+          exit(0);
+      } else if (!strncmp(argv[i], "--blur-passes=", strlen("--blur-passes="))) {
+          char *end = argv[i] + strlen("--blur-passes=");
+          if (!*end) {
+              fprintf(stderr, "Missing argument for --blur-passes=.\n");
+              exit(0);
+          }
+
+          errno = 0;
+          passes = strtol(end, &end, 0);
+          if (*end || errno || (passes < 0)) {
+              fprintf(stderr, "Invalid argument for --blur-passes=\n");
+              exit(0);
+          }
+      } else if (!strcmp(argv[i], "--bloom-lq")) {
+          bloom_lq = true;
+      } else {
+          fprintf(stderr, "Unknown parameter %s. Try --help.\n", argv[i]);
+          exit(1);
+      }
+  }
+
+
+  gl_renderer()->parameters(passes, bloom_lq);
+
 
   // register the delegate classes fo Box 
   game_logic() ->   logic_factory().register_module<model::Box>([](const std::shared_ptr<model::Box> &b ) { return std::make_shared<BoxObjectLogic>     (b); });
