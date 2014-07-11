@@ -6,6 +6,7 @@
 #include "math.hpp"
 #include "model/game_object.hpp"
 #include "flappy_box/model/box.hpp"
+#include "flappy_box/model/explosion.hpp"
 #include "flappy_box/model/game_over.hpp"
 #include "flappy_box/model/paddle.hpp"
 #include "flappy_box/controller/world_logic.hpp"
@@ -115,8 +116,11 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
     }
 
     if (box->position().y() - box->size() / 2.f < paddle->position().y()) {
+      l.game_model()->addGameObject(std::make_shared<Explosion>(*box, vec3_type(1.f, .1f, .1f), 500, .5f));
+
       box->alive() = false;
       box_count--;
+
       --_model->remainingLives();
     }
 
@@ -132,6 +136,9 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
       }
 
       if ((box->position() - ibox->position()).length() < box->size() + ibox->size()) {
+        l.game_model()->addGameObject(std::make_shared<Explosion>(*box,  vec3_type(.2f, 1.f, .2f), 500, .5f));
+        l.game_model()->addGameObject(std::make_shared<Explosion>(*ibox, vec3_type(.2f, 1.f, .2f), 500, .5f));
+
         box->alive() = false;
         ibox->alive() = false;
         box_count -= 2;
@@ -252,7 +259,9 @@ void WorldLogic::setForce(std::shared_ptr<Box> &box, std::shared_ptr<Paddle> &pa
 void WorldLogic::restartGame(Logic &l)
 {
   for (const std::shared_ptr<GameObject> &obj: l.game_model()->objects()) {
-    obj->alive() = false;
+    if (typeid(obj) != typeid(model::Explosion)) {
+      obj->alive() = false;
+    }
   }
 
   add_box_interval_timer = 0.f;
