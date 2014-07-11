@@ -93,11 +93,13 @@ void WorldGlDrawable::visualize(GlRenderer &r, GlutWindow &)
   va->draw(GL_TRIANGLES);
 
 
-  char info[32];
+  if (_model->remainingLives()) {
+    char info[32];
 
-  snprintf(info, sizeof(info), "%i %s", _model->playerPoints(), _model->playerPoints() == 1 ? "point" : "points");
-  r.render_line(vec2(-1.f, 1.f), info);
+    snprintf(info, sizeof(info), "%i %s", _model->playerPoints(), _model->playerPoints() == 1 ? "point" : "points");
+    r.render_line(vec2(-1.f, 1.f), info);
 
-  snprintf(info, sizeof(info), "%i %s", _model->remainingLives(), _model->remainingLives() == 1 ? "life" : "lives");
-  r.render_line(vec2(-1.f, 1.f - r.character_size().y()), info);
+    snprintf(info, sizeof(info), "%i %s", _model->remainingLives(), _model->remainingLives() == 1 ? "life" : "lives");
+    r.render_line(vec2(-1.f, 1.f - r.character_size().y()), info);
+  }
 }
