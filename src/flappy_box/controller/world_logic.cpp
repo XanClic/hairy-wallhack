@@ -65,11 +65,16 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
   static scalar_type add_box_interval_timer;
   add_box_interval_timer += timestep_sec;
 
-  while (add_box_interval_timer >= add_box_interval) {
+  float true_add_box_interval = add_box_interval * powf(_model->gameSpeed(), -8.f);
+  if (true_add_box_interval > add_box_interval) {
+    true_add_box_interval = add_box_interval;
+  }
+
+  while (add_box_interval_timer >= true_add_box_interval) {
     if (paddle || (box_count < 20)) {
       addBoxToGame(l);
     }
-    add_box_interval_timer -= add_box_interval;
+    add_box_interval_timer -= true_add_box_interval;
   }
 
   // The task says to do this after incrementing the point count, but I really
