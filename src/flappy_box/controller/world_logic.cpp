@@ -84,6 +84,9 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
     l.game_model()->addGameObject(std::make_shared<GameOver>("Game Over", _model->playerPoints()));
   }
 
+
+  float old_player_points = _model->playerPoints();
+
   // Keep the points exact
   static scalar_type player_points_inc;
 
@@ -140,7 +143,15 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
   }
 
   if (paddle) {
-    _model->gameSpeed() = 1.f + _model->playerPoints() / 10000.f;
+    if (_model->gameSpeed() < 1.f) {
+      _model->gameSpeed() = 1.f;
+    }
+
+    _model->gameSpeed() += (_model->playerPoints() - old_player_points) / 10000.f;
+
+    if (_model->gameSpeed() > 1.25f) {
+      _model->gameSpeed() = 1.25f;
+    }
   } else {
     _model->gameSpeed() = .3f;
   }
@@ -250,6 +261,7 @@ void WorldLogic::restartGame(Logic &l)
   _model->alive() = true;
   _model->playerPoints() = 0;
   _model->remainingLives() = 5;
+  _model->gameSpeed() = 1.f;
 
   std::shared_ptr<Paddle> user_paddle(new Paddle("PlayerPaddle"));
   user_paddle->size() = vec3_type(10.f, 2.5f, 10.f);
