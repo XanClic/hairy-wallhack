@@ -20,7 +20,7 @@ namespace flappy_box
         virtual void auralize(::view::AlRenderer &) override;
 
       private:
-        std::shared_ptr<const model::GameOver> _model;
+        const model::GameOver *_model;
         ALuint bgm = 0;
     };
   }

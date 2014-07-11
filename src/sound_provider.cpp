@@ -57,7 +57,7 @@ SoundProvider::SoundProvider(void)
 void SoundProvider::getAlBuffer(const char *filename, ALuint *buffer)
 {
   // try to find buffer in the map
-  std::map<const char *, ALuint >::iterator found = _buffers.find(filename);
+  std::map<const char *, ALuint>::iterator found = _buffers.find(filename);
 
   if (found != _buffers.end()) {
     // if we found corresponding buffer write it

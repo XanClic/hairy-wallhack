@@ -13,7 +13,7 @@ using flappy_box::model::GameOver;
 
 
 GameOverGlDrawable::GameOverGlDrawable(const std::shared_ptr<const GameOver> &go):
-  _model(go)
+  _model(go.get())
 {}
 
 
@@ -47,17 +47,6 @@ void GameOverGlDrawable::render_centered_string(GlRenderer &r, float yofs, const
 
 void GameOverGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 {
-  // (╯°□°）╯︵ ┻━┻
-  if (!_model) {
-    return;
-  }
-
-  if (!_model->alive()) {
-    _model = nullptr;
-    return;
-  }
-
-
   // i'm so genius
   r.light_position() = vec3(0.f, 0.f, 5.f);
 

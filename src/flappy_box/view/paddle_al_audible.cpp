@@ -12,7 +12,7 @@ using flappy_box::model::Paddle;
 
 
 PaddleAlAudible::PaddleAlAudible(const std::shared_ptr<const Paddle> &p):
-  _model(p)
+  _model(p.get())
 {
   buf = alutCreateBufferWaveform(ALUT_WAVEFORM_SINE, 150.f, 0.f, 1.f);
 
@@ -34,14 +34,8 @@ PaddleAlAudible::~PaddleAlAudible(void)
 
 void PaddleAlAudible::auralize(AlRenderer &)
 {
-  // (╯°□°）╯︵ ┻━┻
-  if (!_model) {
-    return;
-  }
-
   if (!_model->alive()) {
     alSourceStop(src);
-    _model = nullptr;
     return;
   }
 

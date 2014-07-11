@@ -14,23 +14,12 @@ using namespace flappy_box::controller;
 
 
 PaddleLogic::PaddleLogic(const std::shared_ptr<flappy_box::model::Paddle> &paddle_ptr):
-  _model(paddle_ptr)
+  _model(paddle_ptr.get())
 {}
 
 
 bool PaddleLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
 {
-  // (╯°□°）╯︵ ┻━┻
-  if (!_model) {
-    return 0;
-  }
-
-  if (!_model->alive()) {
-    _model = nullptr;
-    return 0;
-  }
-
-
   scalar_type timestep_sec = l.game_model()->timestep().count();
 
   if (evt.special_key == GLUT_KEY_RIGHT) {

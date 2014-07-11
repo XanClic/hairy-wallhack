@@ -23,7 +23,7 @@ static gl::program *particle_prg;
 
 
 ExplosionGlDrawable::ExplosionGlDrawable(const std::shared_ptr<const Explosion> &x):
-  _model(x)
+  _model(x.get())
 {
   particles_va.set_elements(_model->particle_count());
 
@@ -81,17 +81,6 @@ ExplosionGlDrawable::~ExplosionGlDrawable(void)
 
 void ExplosionGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 {
-  // (╯°□°）╯︵ ┻━┻
-  if (!_model) {
-    return;
-  }
-
-  if (!_model->alive()) {
-    _model = nullptr;
-    return;
-  }
-
-
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 

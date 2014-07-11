@@ -15,7 +15,7 @@ namespace flappy_box
         virtual void auralize(::view::AlRenderer &) override;
 
       private:
-        std::shared_ptr<const model::Box> _model;
+        const model::Box *_model;
         bool newfag = true;
     }; // BoxAlAudible
   }
