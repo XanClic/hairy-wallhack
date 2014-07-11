@@ -13,6 +13,7 @@
 
 #include "view/gl_renderer.hpp"
 #include "view/glut_window.hpp"
+#include "flappy_box/view/explosion_gl_drawable.hpp"
 #include "flappy_box/view/paddle_gl_drawable.hpp"
 
 #include "GL/freeglut.h"
@@ -210,9 +211,18 @@ void GlRenderer::visualize_model( GlutWindow& w )
       if (typeid(*drawable) == typeid(flappy_box::view::PaddleGlDrawable)) {
         // the paddle (or rather the vortices) *must* be drawn last
         paddle = dynamic_cast<flappy_box::view::PaddleGlDrawable *>(drawable.get());
-      } else {
+      } else if (typeid(*drawable) != typeid(flappy_box::view::ExplosionGlDrawable)) {
+        // explosions should be drawn as late as possible
         drawable->visualize(*this, w);
       }
+    }
+  }
+
+  for (const std::shared_ptr<model::GameObject> &o: game_model()->objects()) {
+    std::shared_ptr<Drawable> drawable = o->getData<Drawable>();
+
+    if (drawable && (typeid(*drawable) == typeid(flappy_box::view::ExplosionGlDrawable))) {
+      drawable->visualize(*this, w);
     }
   }
 
