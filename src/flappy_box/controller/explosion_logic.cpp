@@ -12,20 +12,14 @@ using flappy_box::model::Explosion;
 
 
 ExplosionLogic::ExplosionLogic(const std::shared_ptr<Explosion> &x):
-  _model(x)
+  _model(x.get())
 {}
 
 
 bool ExplosionLogic::advance(Logic &l, const InputEventHandler::keyboard_event &)
 {
-  // (╯°□°）╯︵ ┻━┻
-  if (!_model) {
-    return 0;
-  }
-
   if (_model->lifetime() >= _model->max_lifetime()) {
     _model->alive() = false;
-    _model = nullptr;
     return 42;
   }
 

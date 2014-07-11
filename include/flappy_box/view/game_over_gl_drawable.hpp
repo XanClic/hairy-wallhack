@@ -18,7 +18,7 @@ namespace flappy_box
         virtual void visualize(::view::GlRenderer &, ::view::GlutWindow &) override;
 
       private:
-        std::shared_ptr<const model::GameOver> _model;
+        const model::GameOver *_model;
 
         float centered_x(::view::GlRenderer &, const char *);
         void render_centered_string(::view::GlRenderer &r, float yofs, const char *s, dake::math::vec3 color = dake::math::vec3(1.f, 1.f, 1.f));

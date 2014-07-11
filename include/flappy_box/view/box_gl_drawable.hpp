@@ -19,7 +19,7 @@ namespace flappy_box
         virtual void visualize( ::view::GlRenderer&, ::view::GlutWindow& ) override;
 
       private:
-        std::shared_ptr< model::Box const > _model;
+        const model::Box *_model;
         scalar_type lifetime = 0.f;
 
     }; // BoxGlDrawable

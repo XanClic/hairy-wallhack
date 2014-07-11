@@ -24,7 +24,7 @@ namespace flappy_box
         virtual void visualize(::view::GlRenderer &, ::view::GlutWindow &) override;
 
       private:
-        std::shared_ptr<const model::Paddle> _model;
+        const model::Paddle *_model;
 
         scalar_type r0, r1;
         vec3_type size_for_r;

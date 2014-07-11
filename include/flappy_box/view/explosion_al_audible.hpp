@@ -17,7 +17,7 @@ namespace flappy_box
         virtual void auralize(::view::AlRenderer &) override;
 
       private:
-        std::shared_ptr<const model::Explosion> _model;
+        const model::Explosion *_model;
         bool newfag = true;
     };
   }

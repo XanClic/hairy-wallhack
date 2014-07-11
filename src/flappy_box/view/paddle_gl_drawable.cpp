@@ -22,7 +22,7 @@ static gl::program *paddle_prg, *vortex_prg;
 
 
 PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
-  _model(p)
+  _model(p.get())
 {
   updateVBOs();
 
@@ -240,17 +240,6 @@ void PaddleGlDrawable::updateVBOs(void)
 
 void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 {
-  // (╯°□°）╯︵ ┻━┻
-  if (!_model) {
-    return;
-  }
-
-  if (!_model->alive()) {
-    _model = nullptr;
-    return;
-  }
-
-
   if (_model->size() != size_for_r) {
     updateVBOs();
   }

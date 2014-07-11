@@ -13,7 +13,7 @@ using flappy_box::model::GameOver;
 
 
 GameOverAlAudible::GameOverAlAudible(const std::shared_ptr<const GameOver> &go):
-  _model(go)
+  _model(go.get())
 {}
 
 
@@ -27,21 +27,11 @@ GameOverAlAudible::~GameOverAlAudible(void)
 
 void GameOverAlAudible::auralize(AlRenderer &r)
 {
-  // (╯°□°）╯︵ ┻━┻
-  if (!_model) {
-    return;
+  if (!bgm) {
+    bgm = SoundProvider::getInstance()->playSound(r, "game-over.wav", r.camera_position(), .3f, 1.f, true);
   }
 
   if (!_model->alive()) {
-    if (bgm) {
-      alSourceStop(bgm);
-    }
-
-    _model = nullptr;
-    return;
-  }
-
-  if (!bgm) {
-    bgm = SoundProvider::getInstance()->playSound(r, "game-over.wav", r.camera_position(), .3f, 1.f, true);
+     alSourceStop(bgm);
   }
 }

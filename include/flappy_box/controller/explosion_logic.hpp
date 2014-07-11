@@ -17,7 +17,7 @@ namespace flappy_box
         virtual bool advance(::controller::Logic &, const ::controller::InputEventHandler::keyboard_event &) override;
 
       private:
-        std::shared_ptr<model::Explosion> _model;
+        model::Explosion *_model;
     };
   }
 }
