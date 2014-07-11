@@ -101,6 +101,17 @@ BoxGlDrawable::~BoxGlDrawable()
 
 void BoxGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 {
+  // (╯°□°）╯︵ ┻━┻
+  if (!_model) {
+    return;
+  }
+
+  if (!_model->alive()) {
+    _model = nullptr;
+    return;
+  }
+
+
   mat4 mv = mat4::identity();
   mv.translate(_model->position() + vec3(0.f, 0.f, -10.f / lifetime));
   mv.rotate(_model->angle(), vec3(0.f, 0.f, 1.f));

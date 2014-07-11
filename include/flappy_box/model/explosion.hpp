@@ -38,6 +38,7 @@ namespace flappy_box
         scalar_type max_lifetime(void) const { return mlt; }
 
         const vec3_type &max_position(void) const { return max_pos; }
+        const vec3_type &initial_position(void) const { return ini_pos; }
 
 
       private:
@@ -47,7 +48,7 @@ namespace flappy_box
         scalar_type lt = 0.f, mlt;
         size_t part_cnt;
 
-        vec3_type max_pos;
+        vec3_type ini_pos, max_pos;
 
         std::default_random_engine rng;
     };

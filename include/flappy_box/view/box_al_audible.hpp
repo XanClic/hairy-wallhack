@@ -16,6 +16,7 @@ namespace flappy_box
 
       private:
         std::shared_ptr<const model::Box> _model;
+        bool newfag = true;
     }; // BoxAlAudible
   }
 }

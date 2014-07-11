@@ -106,6 +106,7 @@ add_executable( audiophile src/main.cpp
                            src/flappy_box/view/box_al_audible.cpp
                            src/flappy_box/view/box_gl_drawable.cpp
                            src/flappy_box/view/explosion_gl_drawable.cpp
+                           src/flappy_box/view/explosion_al_audible.cpp
                            src/flappy_box/view/game_over_al_audible.cpp
                            src/flappy_box/view/game_over_gl_drawable.cpp
                            src/flappy_box/view/paddle_al_audible.cpp

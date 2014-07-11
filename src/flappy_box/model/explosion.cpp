@@ -11,7 +11,7 @@ using namespace flappy_box::model;
 
 
 Explosion::Explosion(const Box &source, const vec3_type &base_color, size_t amount, scalar_type max_lifetime, const std::string &name):
-  GameObject(true, name), mlt(max_lifetime), part_cnt(amount), max_pos(source.maxPosition())
+  GameObject(true, name), mlt(max_lifetime), part_cnt(amount), ini_pos(source.position()), max_pos(source.maxPosition())
 {
   part_pos.resize(amount);
   part_vel.resize(amount);

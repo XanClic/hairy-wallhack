@@ -21,7 +21,7 @@ namespace flappy_box
 
       private:
         std::shared_ptr<const model::World> _model;
-        ALuint bgm;
+        ALuint bgm = 0;
         bool was_dead = false;
     };
   }

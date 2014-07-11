@@ -12,31 +12,33 @@
 #include "model/game.hpp"
 
 #include "factory_map.hpp"
+#include "math.hpp"
 
 namespace view 
 {
   class GlutWindow;
 
-  class GlRenderer
-  {
+  class GlRenderer {
     public:
-      struct Drawable : public ::model::GameObject::Data
-      {
-        virtual void visualize( GlRenderer&, GlutWindow& ) = 0;
+      struct Drawable: public ::model::GameObject::Data {
+        virtual void visualize(GlRenderer &, GlutWindow &) = 0;
       };
 
-      typedef factory_map< model::GameObject, Drawable > delegate_factory_type;
+      typedef factory_map<model::GameObject, Drawable> delegate_factory_type;
 
-      GlRenderer() = delete;
-      GlRenderer( std::shared_ptr< model::Game const > const& );
+      GlRenderer(void) = delete;
+      GlRenderer(const std::shared_ptr<const model::Game> &);
 
       void init_with_context(void);
 
-      std::shared_ptr< model::Game const > const& game_model() const;
+      const std::shared_ptr<const model::Game> &game_model(void) const;
 
       /// Return factory creating Drawable delegates.
-      delegate_factory_type&       drawable_factory();
-      delegate_factory_type const& drawable_factory() const;
+      delegate_factory_type &drawable_factory(void);
+      const delegate_factory_type &drawable_factory() const;
+
+      vec3_type &camera_position(void) { return cam_pos; }
+      const vec3_type &camera_position(void) const { return cam_pos; }
 
       dake::math::mat4 &camera(void) { return cam; }
       const dake::math::mat4 &camera(void) const { return cam; }
@@ -53,13 +55,15 @@ namespace view
       void parameters(long passes, bool bloom_lq);
       bool has_bloom(void) const { return bloom_blur_passes; }
 
-      virtual void visualize_model( GlutWindow& );
-      virtual void resize( GlutWindow& );
+      virtual void visualize_model(GlutWindow &);
+      virtual void resize(GlutWindow &);
+
 
     private:
-      std::shared_ptr< model::Game const > _game_model;
+      std::shared_ptr<const model::Game> _game_model;
       delegate_factory_type _drawable_factory;
 
+      vec3_type cam_pos = vec3_type(0.f, 0.f, 0.f);
       dake::math::mat4 cam, proj;
       std::shared_ptr<dake::gl::framebuffer> fb, blur_fbs[2];
       std::shared_ptr<dake::gl::program> fb_prg, blur_prg[2], char_prg;

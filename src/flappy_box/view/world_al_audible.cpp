@@ -14,19 +14,23 @@ using flappy_box::model::World;
 
 WorldAlAudible::WorldAlAudible(const std::shared_ptr<const World> &w):
   _model(w)
-{
-  bgm = SoundProvider::getInstance()->playSound("bg.wav", 0.f, .3f, 1.f, true);
-}
+{}
 
 
 WorldAlAudible::~WorldAlAudible(void)
 {
-  alDeleteSources(1, &bgm);
+  if (bgm) {
+    alDeleteSources(1, &bgm);
+  }
 }
 
 
-void WorldAlAudible::auralize(AlRenderer &)
+void WorldAlAudible::auralize(AlRenderer &r)
 {
+  if (!bgm) {
+    bgm = SoundProvider::getInstance()->playSound(r, "bg.wav", r.camera_position(), .3f, 1.f, true);
+  }
+
   if (!_model->alive()) {
     alSourceStop(bgm);
     return;

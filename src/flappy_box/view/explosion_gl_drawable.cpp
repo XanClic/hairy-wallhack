@@ -95,7 +95,7 @@ void ExplosionGlDrawable::visualize(GlRenderer &r, GlutWindow &)
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-  glLineWidth(3.f);
+  glPointSize(3.f);
 
 
   particles_va.attrib(0)->data(_model->particle_positions()    .data(), static_cast<size_t>(-1), GL_DYNAMIC_DRAW);
