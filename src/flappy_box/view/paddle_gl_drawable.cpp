@@ -240,6 +240,17 @@ void PaddleGlDrawable::updateVBOs(void)
 
 void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 {
+  // (╯°□°）╯︵ ┻━┻
+  if (!_model) {
+    return;
+  }
+
+  if (!_model->alive()) {
+    _model = nullptr;
+    return;
+  }
+
+
   if (_model->size() != size_for_r) {
     updateVBOs();
   }
