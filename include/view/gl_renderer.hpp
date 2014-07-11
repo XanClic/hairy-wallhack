@@ -72,7 +72,7 @@ namespace view
       unsigned width, height;
 
       bool bloom_use_lq = false;
-      long bloom_blur_passes = 5;
+      long bloom_blur_passes = 6;
 
   }; // GlRenderer
 
