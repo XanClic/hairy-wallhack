@@ -24,6 +24,17 @@ BoxObjectLogic::BoxObjectLogic(const std::shared_ptr<Box> &b):
 
 bool BoxObjectLogic::advance(Logic &l, const InputEventHandler::keyboard_event &)
 {
+  // (╯°□°）╯︵ ┻━┻
+  if (!_model) {
+    return 0;
+  }
+
+  if (!_model->alive()) {
+    _model = nullptr;
+    return 0;
+  }
+
+
   scalar_type timestep_sec = l.game_model()->timestep().count();
 
   _model->rotAcceleration() = _model->rotAcceleration() * accel_damping - _model->externalForce().x() / 10.f;

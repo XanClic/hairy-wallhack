@@ -34,8 +34,14 @@ PaddleAlAudible::~PaddleAlAudible(void)
 
 void PaddleAlAudible::auralize(AlRenderer &)
 {
+  // (╯°□°）╯︵ ┻━┻
+  if (!_model) {
+    return;
+  }
+
   if (!_model->alive()) {
     alSourceStop(src);
+    _model = nullptr;
     return;
   }
 

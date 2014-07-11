@@ -198,7 +198,7 @@ void GlRenderer::visualize_model( GlutWindow& w )
   // render routines for game objects
   flappy_box::view::PaddleGlDrawable *paddle = nullptr;
 
-  for(auto o: game_model()->objects()) {
+  for (auto o: game_model()->objects()) {
     auto drawable = o->getData<Drawable>();
     if(!drawable) {
       //std::clog << "::view::GlRenderer::visualize_model: Adding new Drawable for \"" << o->name() << "\"." << std::endl;

@@ -27,7 +27,14 @@ GameOverAlAudible::~GameOverAlAudible(void)
 
 void GameOverAlAudible::auralize(AlRenderer &)
 {
+  // (╯°□°）╯︵ ┻━┻
+  if (!_model) {
+    return;
+  }
+
   if (!_model->alive()) {
     alSourceStop(bgm);
+    _model = nullptr;
+    return;
   }
 }
