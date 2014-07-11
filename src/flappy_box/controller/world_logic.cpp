@@ -216,6 +216,16 @@ void WorldLogic::setForce(std::shared_ptr<Box> &box, std::shared_ptr<Paddle> &pa
 
     min_vector.normalize();
 
+    // If a box is bigger than the paddle, it might happen that the box is
+    // off-center, but its closest edge ie on the other side of the paddle
+    // center than most of the box; this will lead to the box being pushed in
+    // the wrong direction. Fix this here.
+    if (((box->position().x() > paddle->position().x()) && (min_vector.x() < 0.f)) ||
+        ((box->position().x() < paddle->position().x()) && (min_vector.x() > 0.f)))
+    {
+      min_vector.x() = 0.f;
+    }
+
     force = off_force_mult * powf(vec3_type(0.f, 1.f, 0.f).dot(min_vector), off_force_exp) * min_vector;
   }
 
