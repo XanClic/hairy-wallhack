@@ -24,21 +24,21 @@ using namespace dake::math;
 using namespace ::view;
 
 
-GlRenderer::GlRenderer( std::shared_ptr< model::Game const > const& g )
-: _game_model( g )
+GlRenderer::GlRenderer(const std::shared_ptr<const model::Game> &g):
+  _game_model(g)
 {}
 
-std::shared_ptr< ::model::Game const > const& GlRenderer::game_model() const
+const std::shared_ptr<const ::model::Game> &GlRenderer::game_model(void) const
 {
   return _game_model;
 }
 
-GlRenderer::delegate_factory_type& GlRenderer::drawable_factory()
+GlRenderer::delegate_factory_type &GlRenderer::drawable_factory(void)
 {
   return _drawable_factory;
 }
 
-GlRenderer::delegate_factory_type const& GlRenderer::drawable_factory() const
+const GlRenderer::delegate_factory_type &GlRenderer::drawable_factory(void) const
 {
   return _drawable_factory;
 }
@@ -194,17 +194,17 @@ void GlRenderer::visualize_model( GlutWindow& w )
   }
 
 
-  cam = mat4::identity().translated(vec3(0.f, 0.f, -100.f));
+  cam = mat4::identity().translated(cam_pos);
 
   // render routines for game objects
   flappy_box::view::PaddleGlDrawable *paddle = nullptr;
 
   for (auto o: game_model()->objects()) {
     auto drawable = o->getData<Drawable>();
-    if(!drawable) {
+    if (!drawable) {
       //std::clog << "::view::GlRenderer::visualize_model: Adding new Drawable for \"" << o->name() << "\"." << std::endl;
       drawable = _drawable_factory.create_for(o);
-      o->registerData( drawable );
+      o->registerData(drawable);
     }
 
     if (drawable) {

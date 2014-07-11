@@ -17,6 +17,7 @@
 #include "flappy_box/controller/world_logic.hpp"
 #include "flappy_box/view/box_al_audible.hpp"
 #include "flappy_box/view/box_gl_drawable.hpp"
+#include "flappy_box/view/explosion_al_audible.hpp"
 #include "flappy_box/view/explosion_gl_drawable.hpp"
 #include "flappy_box/view/game_over_al_audible.hpp"
 #include "flappy_box/view/game_over_gl_drawable.hpp"
@@ -87,6 +88,9 @@ void FlappyEngine::init( int& argc, char** argv )
 
   gl_renderer()->parameters(passes, bloom_lq);
 
+  al_renderer()->camera_position() = vec3_type(0.f, 0.f, -100.f);
+  gl_renderer()->camera_position() = vec3_type(0.f, 0.f, -100.f);
+
 
   // register the delegate classes fo Box 
   game_logic() ->   logic_factory().register_module<model::Box>([](const std::shared_ptr<model::Box> &b ) { return std::make_shared<BoxObjectLogic>     (b); });
@@ -105,6 +109,7 @@ void FlappyEngine::init( int& argc, char** argv )
   gl_renderer()->drawable_factory().register_module<model::GameOver>([](const std::shared_ptr<model::GameOver> &go) { return std::make_shared<view::GameOverGlDrawable>(go); });
 
   game_logic() ->   logic_factory().register_module<model::Explosion>([](const std::shared_ptr<model::Explosion> &x) { return std::make_shared<ExplosionLogic>           (x); });
+  al_renderer()-> audible_factory().register_module<model::Explosion>([](const std::shared_ptr<model::Explosion> &x) { return std::make_shared<view::ExplosionAlAudible> (x); });
   gl_renderer()->drawable_factory().register_module<model::Explosion>([](const std::shared_ptr<model::Explosion> &x) { return std::make_shared<view::ExplosionGlDrawable>(x); });
 
 
