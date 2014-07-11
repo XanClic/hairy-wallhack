@@ -49,13 +49,13 @@ void FlappyEngine::init( int& argc, char** argv )
 
 
   // TODO: Remove arguments
-  long passes = 5;
+  long passes = 6;
   bool bloom_lq = false;
 
   for (int i = 1; i < argc; i++) {
       if (!strcmp(argv[i], "--help")) {
           printf("Parameters:\n");
-          printf("  --blur-passes=n: Sets the number of bloom blur passes (default: 5);\n");
+          printf("  --blur-passes=n: Sets the number of bloom blur passes (default: 6);\n");
           printf("                   use 0 to disable bloom\n");
           printf("  --bloom-lq:      Reduces the bloom quality by using an integer FBO\n");
 
