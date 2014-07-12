@@ -66,7 +66,7 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
   static scalar_type add_box_interval_timer;
   add_box_interval_timer += timestep_sec;
 
-  float true_add_box_interval = add_box_interval * powf(_model->gameSpeed(), -8.f);
+  float true_add_box_interval = add_box_interval * powf(l.game_model()->gameSpeed(), -8.f);
   if (true_add_box_interval > add_box_interval) {
     true_add_box_interval = add_box_interval;
   }
@@ -116,7 +116,7 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
     }
 
     if (box->position().y() - box->size() / 2.f < paddle->position().y()) {
-      l.game_model()->addGameObject(std::make_shared<Explosion>(*box, vec3_type(1.f, .1f, .1f), 500, .5f));
+      l.game_model()->addGameObject(std::make_shared<Explosion>(Explosion::BOX_FLOOR_CRASH, *box, vec3_type(1.f, .1f, .1f), 500, 1.f));
 
       box->alive() = false;
       box_count--;
@@ -138,8 +138,8 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
       }
 
       if ((box->position() - ibox->position()).length() < box->size() + ibox->size()) {
-        l.game_model()->addGameObject(std::make_shared<Explosion>(*box,  vec3_type(.2f, 1.f, .2f), 500, .5f));
-        l.game_model()->addGameObject(std::make_shared<Explosion>(*ibox, vec3_type(.2f, 1.f, .2f), 500, .5f));
+        l.game_model()->addGameObject(std::make_shared<Explosion>(Explosion::BOX_BOX_COLLISION, *box,  vec3_type(.2f, 1.f, .2f), 500, .5f));
+        l.game_model()->addGameObject(std::make_shared<Explosion>(Explosion::BOX_BOX_COLLISION, *ibox, vec3_type(.2f, 1.f, .2f), 500, .5f));
 
         box->alive() = false;
         ibox->alive() = false;
@@ -152,17 +152,17 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
   }
 
   if (paddle) {
-    if (_model->gameSpeed() < 1.f) {
-      _model->gameSpeed() = 1.f;
+    if (l.game_model()->gameSpeed() < 1.f) {
+      l.game_model()->gameSpeed() = 1.f;
     }
 
-    _model->gameSpeed() += (_model->playerPoints() - old_player_points) / 10000.f;
+    l.game_model()->gameSpeed() += (_model->playerPoints() - old_player_points) / 10000.f;
 
-    if (_model->gameSpeed() > 1.25f) {
-      _model->gameSpeed() = 1.25f;
+    if (l.game_model()->gameSpeed() > 1.25f) {
+      l.game_model()->gameSpeed() = 1.25f;
     }
   } else {
-    _model->gameSpeed() = .3f;
+    l.game_model()->gameSpeed() = .3f;
   }
 
   return true;
@@ -272,7 +272,7 @@ void WorldLogic::restartGame(Logic &l)
   _model->alive() = true;
   _model->playerPoints() = 0;
   _model->remainingLives() = 5;
-  _model->gameSpeed() = 1.f;
+  l.game_model()->gameSpeed() = 1.f;
 
   std::shared_ptr<Paddle> user_paddle(new Paddle("PlayerPaddle"));
   user_paddle->size() = vec3_type(10.f, 2.5f, 10.f);

@@ -46,5 +46,5 @@ void WorldAlAudible::auralize(AlRenderer &r)
     alSourcePlay(bgm);
   }
 
-  alSourcef(bgm, AL_PITCH, _model->gameSpeed());
+  alSourcef(bgm, AL_PITCH, r.game_model()->gameSpeed());
 }

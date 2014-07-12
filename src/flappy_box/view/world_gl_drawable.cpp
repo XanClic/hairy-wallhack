@@ -87,7 +87,7 @@ void WorldGlDrawable::visualize(GlRenderer &r, GlutWindow &)
   }
 
   // FIXME (periodic reset)
-  time_step += r.game_model()->timestep().count() * _model->gameSpeed() * 150.f;
+  time_step += r.game_model()->timestep().count() * r.game_model()->gameSpeed() * 150.f;
   world_prg->uniform<float>("time_step") = time_step;
 
   va->draw(GL_TRIANGLES);
