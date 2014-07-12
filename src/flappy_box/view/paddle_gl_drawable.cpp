@@ -282,13 +282,9 @@ void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &)
   blade_va.draw(GL_TRIANGLES);
 
 
-  // No need to disable setting the depth buffer; this is drawn last anyway
-  // (because I'm good)
-  // Actually, this *must* write to the depth buffer or the fog will overwrite
-  // it
-
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+  glDepthMask(GL_FALSE);
 
   vortex_prg->use();
   vortex_prg->uniform<mat4>("proj") = r.projection() * r.camera();
@@ -319,4 +315,5 @@ void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &)
   }
 
   glDisable(GL_BLEND);
+  glDepthMask(GL_TRUE);
 }
