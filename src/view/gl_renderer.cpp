@@ -68,11 +68,14 @@ void GlRenderer::init_with_context(void)
   blur_fbs[0] = std::make_shared<gl::framebuffer>(1);
   blur_fbs[1] = std::make_shared<gl::framebuffer>(1);
 
+  (*blur_fbs[0])[0].filter(GL_LINEAR);
+  (*blur_fbs[1])[0].filter(GL_LINEAR);
+
 
   if (!bloom_use_lq) {
-    fb->color_format(1, GL_RGBA16F);
-    blur_fbs[0]->color_format(0, GL_RGBA16F);
-    blur_fbs[1]->color_format(0, GL_RGBA16F);
+    fb->color_format(1, GL_R11F_G11F_B10F);
+    blur_fbs[0]->color_format(0, GL_R11F_G11F_B10F);
+    blur_fbs[1]->color_format(0, GL_R11F_G11F_B10F);
   }
 
 
@@ -193,6 +196,8 @@ void GlRenderer::visualize_model( GlutWindow& w )
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
+  glViewport(0, 0, width, height);
+
 
   cam = mat4::identity().translated(cam_pos);
 
@@ -233,6 +238,8 @@ void GlRenderer::visualize_model( GlutWindow& w )
 
 
   if (bloom_blur_passes) {
+    glViewport(0, 0, width / 2, height / 2);
+
     const gl::texture *input_tex = &(*fb)[1];
     for (int i = 0, cur_fb = 0; i < bloom_blur_passes * 2; i++, cur_fb ^= 1) {
       blur_prg[cur_fb]->use();
@@ -251,6 +258,7 @@ void GlRenderer::visualize_model( GlutWindow& w )
 
 
     gl::framebuffer::unbind();
+    glViewport(0, 0, width, height);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -321,14 +329,9 @@ void GlRenderer::resize(GlutWindow &win)
   width = win.width();
   height = win.height();
 
-  gl::framebuffer::unbind();
-  glViewport(0, 0, width, height);
-
-  for (std::shared_ptr<gl::framebuffer> fbo: {fb, blur_fbs[0], blur_fbs[1]}) {
-    fbo->bind();
-    fbo->resize(width, height);
-    glViewport(0, 0, width, height);
-  }
+  fb->resize(width, height);
+  blur_fbs[0]->resize(width / 2, height / 2);
+  blur_fbs[1]->resize(width / 2, height / 2);
 
   proj = mat4::projection(static_cast<float>(M_PI) / 3.f, static_cast<float>(width) / height, 1.f, 1000.f);
 
