@@ -32,7 +32,7 @@ PaddleAlAudible::~PaddleAlAudible(void)
 }
 
 
-void PaddleAlAudible::auralize(AlRenderer &)
+void PaddleAlAudible::auralize(AlRenderer &r)
 {
   if (!_model->alive()) {
     alSourceStop(src);
@@ -43,10 +43,9 @@ void PaddleAlAudible::auralize(AlRenderer &)
   // OpenAL exists is so you can give coordinates in 3D space. Just giving the
   // X axis results in having either left or right speaker on full output.
 
-  // FIXME: camera position is unknown
-  alSource3f(src, AL_POSITION, _model->position().x(), _model->position().y(), 100.f);
+  alSourcefv(src, AL_POSITION, r.spherical_projection(_model->position(), _model->maxPosition()));
 
   float normalized_speed = fabsf(_model->velocity().x()) / _model->maxVelocity();
-  alSourcef(src, AL_GAIN, normalized_speed * 50.f);
+  alSourcef(src, AL_GAIN, normalized_speed * 70.f);
   alSourcef(src, AL_PITCH, normalized_speed + .5f);
 }

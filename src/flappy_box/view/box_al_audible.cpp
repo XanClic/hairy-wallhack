@@ -22,7 +22,7 @@ void BoxAlAudible::auralize(::view::AlRenderer &r)
     newfag = false;
 
     if (!_model->mute()) {
-      SoundProvider::getInstance()->playSound(r, "birth.wav", _model->position(), 20.f, 1.f, false);
+      SoundProvider::getInstance()->playSound(r, "birth.wav", r.spherical_projection(_model->position(), _model->maxPosition()), 30.f, 1.f, false);
     }
   }
 }
