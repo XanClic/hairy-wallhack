@@ -1,39 +1,44 @@
-# pragma once
+#ifndef MODEL__GAME_HPP
+#define MODEL__GAME_HPP
 
-# include "model/game_object.hpp"
+#include <chrono>
+#include <vector>
+#include <memory>
 
-# include <chrono>
-# include <vector>
-# include <memory>
+#include "math.hpp"
+
+#include "model/game_object.hpp"
+
 
 namespace model
 {
-
-  class Game
-  {
+  class Game {
     public:
+      Game(void);
 
-      Game();
+      void addGameObject(const std::shared_ptr<GameObject> &o);
+      void processAddGameObjects(void);
 
-      void addGameObject( std::shared_ptr< GameObject > const& o );
-      void processAddGameObjects();
-      
-      // ATTENTION: NEW CODE!
-      void removeInvalidGameObjects( );
-      //
-      const std::vector< std::shared_ptr< GameObject > >& objects() const;
+      void removeInvalidGameObjects(void);
 
-      void setTimestamp( std::chrono::steady_clock::time_point const& t );
+      const std::vector<std::shared_ptr<GameObject>> &objects(void) const;
 
-      std::chrono::steady_clock::time_point const& timestamp() const;
-      std::chrono::duration< double > const&        timestep() const;
+      void setTimestamp(const std::chrono::steady_clock::time_point &t);
+
+      const std::chrono::steady_clock::time_point &timestamp(void) const;
+      const std::chrono::duration<double>         &timestep(void) const;
+
+      scalar_type gameSpeed(void) const { return game_speed; }
+      scalar_type &gameSpeed(void) { return game_speed; }
 
   private:
-    std::vector< std::shared_ptr< GameObject > >        _objects;
-    std::vector< std::shared_ptr< GameObject > > _waitingObjects;
-    std::chrono::steady_clock::time_point             _timestamp;
-    std::chrono::duration< double >                    _timestep;
+    std::vector<std::shared_ptr<GameObject>>        _objects;
+    std::vector<std::shared_ptr<GameObject>> _waitingObjects;
+    std::chrono::steady_clock::time_point         _timestamp;
+    std::chrono::duration<double>                  _timestep;
 
+    scalar_type game_speed = 1.f;
   }; // Game
-
 } // model::
+
+#endif
