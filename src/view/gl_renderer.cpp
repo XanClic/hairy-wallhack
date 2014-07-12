@@ -209,13 +209,18 @@ void GlRenderer::visualize_model( GlutWindow& w )
 
     if (drawable) {
       if (typeid(*drawable) == typeid(flappy_box::view::PaddleGlDrawable)) {
-        // the paddle (or rather the vortices) *must* be drawn last
+        // the paddle (or rather the vortices) should be drawn last
         paddle = dynamic_cast<flappy_box::view::PaddleGlDrawable *>(drawable.get());
       } else if (typeid(*drawable) != typeid(flappy_box::view::ExplosionGlDrawable)) {
-        // explosions should be drawn as late as possible
+        // explosions should be drawn as late as possible as well
         drawable->visualize(*this, w);
       }
     }
+  }
+
+  // since the paddle has a solid part, draw it first (and hope for the best)
+  if (paddle) {
+    paddle->visualize(*this, w);
   }
 
   for (const std::shared_ptr<model::GameObject> &o: game_model()->objects()) {
@@ -224,10 +229,6 @@ void GlRenderer::visualize_model( GlutWindow& w )
     if (drawable && (typeid(*drawable) == typeid(flappy_box::view::ExplosionGlDrawable))) {
       drawable->visualize(*this, w);
     }
-  }
-
-  if (paddle) {
-    paddle->visualize(*this, w);
   }
 
 

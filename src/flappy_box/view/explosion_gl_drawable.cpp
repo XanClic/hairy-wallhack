@@ -83,6 +83,7 @@ void ExplosionGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+  glDepthMask(GL_FALSE);
 
   glPointSize(3.f);
 
@@ -99,4 +100,5 @@ void ExplosionGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 
 
   glDisable(GL_BLEND);
+  glDepthMask(GL_TRUE);
 }
