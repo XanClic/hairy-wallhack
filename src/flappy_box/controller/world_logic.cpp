@@ -121,7 +121,9 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
       box->alive() = false;
       box_count--;
 
-      --_model->remainingLives();
+      if (_model->remainingLives() > 0) {
+        --_model->remainingLives();
+      }
     }
 
     // this is genius
