@@ -247,7 +247,7 @@ void GlRenderer::visualize_model( GlutWindow& w )
 
       input_tex->bind();
       blur_prg[cur_fb]->uniform<gl::texture>("input_tex") = *input_tex;
-      blur_prg[cur_fb]->uniform<float>("epsilon") = exp2((8 - i / 2) / 2.f) / (cur_fb ? height : width);
+      blur_prg[cur_fb]->uniform<float>("epsilon") = exp2((6 - i / 2) / 2.f) / (cur_fb ? height / 2 : width / 2);
 
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
