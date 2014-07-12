@@ -4,6 +4,7 @@
 #include <dake/gl/shader.hpp>
 #include <dake/gl/vertex_array.hpp>
 #include <dake/gl/vertex_attrib.hpp>
+#include <dake/helper/function.hpp>
 #include <dake/math/matrix.hpp>
 
 #include "flappy_box/model/paddle.hpp"
@@ -11,6 +12,7 @@
 
 
 using namespace dake;
+using namespace dake::helper;
 using namespace dake::math;
 using namespace view;
 using namespace flappy_box::view;
@@ -112,10 +114,10 @@ PaddleGlDrawable::~PaddleGlDrawable(void)
 
 void PaddleGlDrawable::updateVBOs(void)
 {
-  r0 = (_model->size().x() > _model->size().z() ? _model->size().x() : _model->size().z()) / 2.f;
+  r0 = maximum(_model->size().x(), _model->size().z()) / 2.f;
   // Tasks says "r1 should be at least r0", but that's BS, it should be
   // "at most r0".
-  r1 = _model->size().y() / 2.f > r0 ? r0 : _model->size().y() / 2.f;
+  r1 = minimum(_model->size().y() / 2.f, r0);
 
   size_for_r = _model->size();
 

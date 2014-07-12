@@ -30,6 +30,8 @@ namespace view
       vec3_type &camera_position(void) { return cam_pos; }
       const vec3_type &camera_position(void) const { return cam_pos; }
 
+      vec3_type spherical_projection(const vec3_type &position, const vec3_type &max_position);
+
       void auralize_model(void);
 
 
