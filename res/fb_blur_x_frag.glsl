@@ -10,7 +10,7 @@ uniform float epsilon;
 
 vec4 access(float diff)
 {
-  return texture(input_tex, vec2(clamp(vf_pos.x + epsilon * diff, 0.0, 0.9999), vf_pos.y));
+  return texture(input_tex, vec2(clamp(vf_pos.x + epsilon * diff, epsilon, 1.0 - epsilon), vf_pos.y));
 }
 
 void main(void)
