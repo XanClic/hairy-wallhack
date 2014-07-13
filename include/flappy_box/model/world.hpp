@@ -24,10 +24,14 @@ namespace flappy_box
         distance_type getWorldHalfHeight(void) const { return 50.f; }
         distance_type getWorldHalfWidth(void) const { return 80.f; }
 
+        bool gameRestarted(void) const { return game_restarted; }
+        bool &gameRestarted(void) { return game_restarted; }
+
 
       private:
         int _playerPoints   = 0;
         int _remainingLives = 5;
+        bool game_restarted = false;
     };
   }
 }

@@ -41,7 +41,7 @@ void WorldAlAudible::auralize(AlRenderer &r)
       was_dead = true;
       alSourceRewind(bgm);
     }
-  } else if (was_dead) {
+  } else if (_model->gameRestarted()) {
     was_dead = false;
     alSourcePlay(bgm);
   }

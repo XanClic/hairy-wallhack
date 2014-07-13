@@ -33,6 +33,8 @@ WorldLogic::WorldLogic(const std::shared_ptr<flappy_box::model::World> &world_pt
 
 bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
 {
+  _model->gameRestarted() = false;
+
   if (evt.key == 'r') {
     _shallRestartTheGame = true;
   }
@@ -282,4 +284,6 @@ void WorldLogic::restartGame(Logic &l)
   l.game_model()->addGameObject(user_paddle);
 
   _shallRestartTheGame = false;
+
+  _model->gameRestarted() = true;
 }
