@@ -118,7 +118,7 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
     }
 
     if (box->position().y() - box->size() / 2.f < paddle->position().y()) {
-      l.game_model()->addGameObject(std::make_shared<Explosion>(Explosion::BOX_FLOOR_CRASH, *box, vec3_type(1.f, .1f, .1f), 500, 2.f));
+      l.game_model()->addGameObject(std::make_shared<Explosion>(Explosion::BOX_FLOOR_CRASH, *box, vec3_type(1.f, .1f, .1f), lrintf(2.f * powf(box->size(), 3.f)), 2.f));
 
       box->alive() = false;
       box_count--;
@@ -140,8 +140,8 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
       }
 
       if ((box->position() - ibox->position()).length() < box->size() + ibox->size()) {
-        l.game_model()->addGameObject(std::make_shared<Explosion>(Explosion::BOX_BOX_COLLISION, *box,  vec3_type(.2f, 1.f, .2f), 500, .5f));
-        l.game_model()->addGameObject(std::make_shared<Explosion>(Explosion::BOX_BOX_COLLISION, *ibox, vec3_type(.2f, 1.f, .2f), 500, .5f));
+        l.game_model()->addGameObject(std::make_shared<Explosion>(Explosion::BOX_BOX_COLLISION, *box,  vec3_type(.2f, 1.f, .2f), lrintf(2.f * powf(box->size(), 3.f)), .5f));
+        l.game_model()->addGameObject(std::make_shared<Explosion>(Explosion::BOX_BOX_COLLISION, *ibox, vec3_type(.2f, 1.f, .2f), lrintf(2.f * powf(box->size(), 3.f)), .5f));
 
         box->alive() = false;
         ibox->alive() = false;
