@@ -116,7 +116,7 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
     }
 
     if (box->position().y() - box->size() / 2.f < paddle->position().y()) {
-      l.game_model()->addGameObject(std::make_shared<Explosion>(Explosion::BOX_FLOOR_CRASH, *box, vec3_type(1.f, .1f, .1f), 500, 1.f));
+      l.game_model()->addGameObject(std::make_shared<Explosion>(Explosion::BOX_FLOOR_CRASH, *box, vec3_type(1.f, .1f, .1f), 500, 2.f));
 
       box->alive() = false;
       box_count--;
@@ -146,7 +146,7 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
         box_count -= 2;
 
         // EXTRA MONSTER POINTS
-        _model->playerPoints() += hit_extra_points;
+        _model->playerPoints() += (box->velocity() - ibox->velocity()).length() / 4.f;
       }
     }
   }
