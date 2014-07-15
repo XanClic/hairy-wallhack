@@ -14,8 +14,9 @@ using namespace flappy_box::model;
 
 
 Explosion::Explosion(Type tp, const Box &source, const std::string &name):
-  GameObject(true, name), t(tp), ini_pos(source.position()), max_pos(source.maxPosition())
+  GameObject(true, name), t(tp), ini_pos(source.position())
 {
+  max_pos = vec3_type(source.maxPosition().x() + source.size() / 2.f, source.maxPosition().y() + source.size() / 2.f, HUGE_VALF);
   part_cnt = lrintf(2.f * powf(source.size(), 3.f));
 
   vec3_type base_color;
