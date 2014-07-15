@@ -52,7 +52,7 @@ namespace flappy_box
 
         scalar_type s = 1.f, fs = 1.f;
 
-        static const constexpr scalar_type max_velocity = 200.f;
+        static constexpr scalar_type max_velocity = 200.f;
     };
   }
 }
