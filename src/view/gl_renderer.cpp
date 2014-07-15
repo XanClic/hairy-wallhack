@@ -125,6 +125,11 @@ void GlRenderer::init_with_context(void)
 
     (*ssao_output_fb)[0].set_tmu(1);
     (*ssao_output_fb)[1].set_tmu(0);
+
+
+    if (!bloom_use_lq) {
+      ssao_output_fb->color_format(1, GL_R11F_G11F_B10F);
+    }
   } else {
     ssao_fb = nullptr;
     ssao_blur_fbs[0] = nullptr;
@@ -285,7 +290,7 @@ void GlRenderer::visualize_model( GlutWindow& w )
     fb->mask(1);
     fb->bind();
 
-    glClearColor(.7f, .7f, .7f, 1.f);
+    glClearColor(.8f, .8f, .8f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -346,43 +351,12 @@ void GlRenderer::visualize_model( GlutWindow& w )
     paddle->visualize(*this, w);
   }
 
-  for (const std::shared_ptr<model::GameObject> &o: game_model()->objects()) {
-    std::shared_ptr<Drawable> drawable = o->getData<Drawable>();
 
-    if (drawable && (typeid(*drawable) == typeid(flappy_box::view::ExplosionGlDrawable))) {
-      drawable->visualize(*this, w);
-    }
-  }
-
-
-  if (!log.empty()) {
-    // Remove old entries
-    float timestep_sec = _game_model->timestep().count();
-    for (auto it = log.begin(); it != log.end();) {
-      it->lifetime -= timestep_sec;
-      if (it->lifetime <= 0.f) {
-        it = log.erase(it);
-      } else {
-        ++it;
-      }
-    }
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
-
-    // Display other entries
-    float line_y = -1.f + log.size() * char_size.y();
-    for (const LogEntry &e: log) {
-      float col = minimum(1.f, e.lifetime);
-      render_line(vec2(-1.f, line_y), e.msg.c_str(), vec3(col, col, col));
-
-      line_y -= char_size.y();
-    }
-
-    glDisable(GL_BLEND);
-  }
-
-
+  // Actually, SSAO calculation needs to be done before the vortex. But this
+  // engine design is dumb as hell (as everyone knew from the start, but hey),
+  // so we can't because vortex and paddle aren't seperable. Great.
+  // With SSAO here, the paddle is used for SSAO calculations, but the vortex
+  // is hidden behind SSAO shadows. GREAT!
   if (ssao != NO_SSAO) {
     if (ssao == LQ_SSAO) {
       glViewport(0, 0, width / 2, height / 2);
@@ -441,9 +415,49 @@ void GlRenderer::visualize_model( GlutWindow& w )
 
     fb_vertices->draw(GL_TRIANGLE_STRIP);
 
+    glClear(GL_DEPTH_BUFFER_BIT);
+
 
     color_mi = &(*ssao_output_fb)[0];
     color_hi = &(*ssao_output_fb)[1];
+  }
+
+
+  // Draw immaterial stuff which is irrelevant for SSAO
+  for (const std::shared_ptr<model::GameObject> &o: game_model()->objects()) {
+    std::shared_ptr<Drawable> drawable = o->getData<Drawable>();
+
+    if (drawable && (typeid(*drawable) == typeid(flappy_box::view::ExplosionGlDrawable))) {
+      drawable->visualize(*this, w);
+    }
+  }
+
+
+  if (!log.empty()) {
+    // Remove old entries
+    float timestep_sec = _game_model->timestep().count();
+    for (auto it = log.begin(); it != log.end();) {
+      it->lifetime -= timestep_sec;
+      if (it->lifetime <= 0.f) {
+        it = log.erase(it);
+      } else {
+        ++it;
+      }
+    }
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+
+    // Display other entries
+    float line_y = -1.f + log.size() * char_size.y();
+    for (const LogEntry &e: log) {
+      float col = minimum(1.f, e.lifetime);
+      render_line(vec2(-1.f, line_y), e.msg.c_str(), vec3(col, col, col));
+
+      line_y -= char_size.y();
+    }
+
+    glDisable(GL_BLEND);
   }
 
 
