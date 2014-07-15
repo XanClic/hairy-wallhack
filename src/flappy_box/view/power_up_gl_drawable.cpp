@@ -9,6 +9,8 @@
 #include <memory>
 #include <stdexcept>
 
+#include "resource_finder.hpp"
+
 #include "flappy_box/view/power_up_gl_drawable.hpp"
 
 
@@ -35,8 +37,8 @@ PowerUpGlDrawable::PowerUpGlDrawable(const std::shared_ptr<const PowerUp> &pu):
 
   gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
 
-  vsh.load("res/power_up_vert.glsl");
-  fsh.load("res/power_up_frag.glsl");
+  vsh.load(find_resource_file("power_up_vert.glsl").c_str());
+  fsh.load(find_resource_file("power_up_frag.glsl").c_str());
 
   if (!vsh.compile() || !fsh.compile()) {
     throw std::runtime_error("Could not compile power-up shaders");
@@ -58,7 +60,7 @@ PowerUpGlDrawable::PowerUpGlDrawable(const std::shared_ptr<const PowerUp> &pu):
   }
 
 
-  gl::obj obj = gl::load_obj("res/power_up.obj");
+  gl::obj obj = gl::load_obj(find_resource_file("power_up.obj").c_str());
 
   if (obj.sections.size() != 1) {
     throw std::runtime_error("Could not load power-up mesh: Has more than one material");

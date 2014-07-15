@@ -119,6 +119,8 @@ add_executable( audiophile src/main.cpp
 
                            # sound management
                            src/sound_provider.cpp
+
+                           src/resource_finder.cpp
               )
 
 target_link_libraries( audiophile -ldake ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${OPENAL_LIBRARY} ${ALUT_LIBRARY} ${GLEW_LIBRARIES} ${PNG_LIBRARY} )

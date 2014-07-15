@@ -11,6 +11,7 @@
 #include <cstdio>
 
 #include "math.hpp"
+#include "resource_finder.hpp"
 
 #include "view/gl_renderer.hpp"
 #include "view/glut_window.hpp"
@@ -83,8 +84,8 @@ void GlRenderer::init_with_context(void)
 
   gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
 
-  vsh.load("res/fb_vert.glsl");
-  fsh.load("res/fb_combine_frag.glsl");
+  vsh.load(find_resource_file("fb_vert.glsl").c_str());
+  fsh.load(find_resource_file("fb_combine_frag.glsl").c_str());
 
   if (!vsh.compile() || !fsh.compile()) {
     throw std::runtime_error("Could not compile FB display shaders");
@@ -105,8 +106,8 @@ void GlRenderer::init_with_context(void)
 
   gl::shader blur_x(gl::shader::FRAGMENT), blur_y(gl::shader::FRAGMENT);
 
-  blur_x.load("res/fb_blur_x_frag.glsl");
-  blur_y.load("res/fb_blur_y_frag.glsl");
+  blur_x.load(find_resource_file("fb_blur_x_frag.glsl").c_str());
+  blur_y.load(find_resource_file("fb_blur_y_frag.glsl").c_str());
 
   if (!blur_x.compile() || !blur_y.compile()) {
     throw std::runtime_error("Could not compile blur shaders");
@@ -129,8 +130,8 @@ void GlRenderer::init_with_context(void)
 
   gl::shader char_vsh(gl::shader::VERTEX), char_fsh(gl::shader::FRAGMENT);
 
-  char_vsh.load("res/char_vert.glsl");
-  char_fsh.load("res/char_frag.glsl");
+  char_vsh.load(find_resource_file("char_vert.glsl").c_str());
+  char_fsh.load(find_resource_file("char_frag.glsl").c_str());
 
   if (!char_vsh.compile() || !char_fsh.compile()) {
     throw std::runtime_error("Could not compile character rendering shaders");
@@ -151,7 +152,7 @@ void GlRenderer::init_with_context(void)
   }
 
 
-  bitmap_font = std::make_shared<gl::texture>("res/font.png");
+  bitmap_font = std::make_shared<gl::texture>(find_resource_file("font.png").c_str());
 
 
   fb_vertices = std::make_shared<gl::vertex_array>();
