@@ -32,7 +32,8 @@ PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
 
 
   for (gl::vertex_array &va: vortex_vas) {
-    va.set_elements(vortex_line_len * 2);
+    // Second *2: Go back down for backfaces
+    va.set_elements(vortex_line_len * 2 * 2);
 
     gl::vertex_attrib *vap = va.attrib(0);
     vap->format(3);
@@ -306,6 +307,11 @@ void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 
     vec3 *vd = static_cast<vec3 *>(vortex_vas[v].attrib(0)->map());
     for (int s = 0; s < vortex_line_len; s++) {
+      *(vd++) = vortex_dat[v][s][1] - vec3(.5f * vortex_band_width, 0.f, 0.f);
+      *(vd++) = vortex_dat[v][s][1] + vec3(.5f * vortex_band_width, 0.f, 0.f);
+    }
+    // Go back down for backfaces
+    for (int s = vortex_line_len - 1; s >= 0; s--) {
       *(vd++) = vortex_dat[v][s][1] - vec3(.5f * vortex_band_width, 0.f, 0.f);
       *(vd++) = vortex_dat[v][s][1] + vec3(.5f * vortex_band_width, 0.f, 0.f);
     }
