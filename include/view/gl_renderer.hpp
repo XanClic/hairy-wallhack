@@ -57,7 +57,7 @@ namespace view
 
       void log_add(const std::string &msg);
 
-      void parameters(long passes, bool bloom_lq);
+      void parameters(long passes, bool bloom_lq, bool ssao);
       bool has_bloom(void) const { return bloom_blur_passes; }
 
       virtual void visualize_model(GlutWindow &);
@@ -78,10 +78,10 @@ namespace view
 
       vec3_type cam_pos = vec3_type(0.f, 0.f, 0.f);
       dake::math::mat4 cam, proj;
-      std::shared_ptr<dake::gl::framebuffer> fb, blur_fbs[2];
-      std::shared_ptr<dake::gl::program> fb_prg, blur_prg[2], char_prg;
+      std::shared_ptr<dake::gl::framebuffer> fb, blur_fbs[2], ssao_fb, ssao_blur_fbs[2], ssao_output_fb;
+      std::shared_ptr<dake::gl::program> fb_prg, blur_prg[2], char_prg, ssao_prg, ssao_blur_prg[2], ssao_apply_prg;
       std::shared_ptr<dake::gl::vertex_array> fb_vertices;
-      std::shared_ptr<dake::gl::texture> bitmap_font;
+      std::shared_ptr<dake::gl::texture> bitmap_font, ssao_noise;
 
       dake::math::vec3 light_pos = dake::math::vec3(0.f, 0.f, 0.f);
 
@@ -90,6 +90,7 @@ namespace view
 
       bool bloom_use_lq = false;
       long bloom_blur_passes = 5;
+      bool ssao = true;
 
       std::vector<LogEntry> log;
   }; // GlRenderer

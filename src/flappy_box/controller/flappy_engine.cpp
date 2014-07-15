@@ -58,38 +58,42 @@ void FlappyEngine::init( int& argc, char** argv )
   // TODO: Remove arguments
   long passes = 5;
   bool bloom_lq = false;
+  bool ssao = true;
 
   for (int i = 1; i < argc; i++) {
-      if (!strcmp(argv[i], "--help")) {
-          printf("Parameters:\n");
-          printf("  --blur-passes=n: Sets the number of bloom blur passes (default: %li);\n", passes);
-          printf("                   use 0 to disable bloom\n");
-          printf("  --bloom-lq:      Reduces the bloom quality by using an integer FBO\n");
+    if (!strcmp(argv[i], "--help")) {
+      printf("Parameters:\n");
+      printf("  --blur-passes=n: Sets the number of bloom blur passes (default: %li);\n", passes);
+      printf("                   use 0 to disable bloom\n");
+      printf("  --bloom-lq:      Reduces the bloom quality by using an integer FBO\n");
+      printf("  --no-ssao:       Disables Screen Space Ambient Occlusion\n");
 
-          exit(0);
-      } else if (!strncmp(argv[i], "--blur-passes=", strlen("--blur-passes="))) {
-          char *end = argv[i] + strlen("--blur-passes=");
-          if (!*end) {
-              fprintf(stderr, "Missing argument for --blur-passes=.\n");
-              exit(0);
-          }
-
-          errno = 0;
-          passes = strtol(end, &end, 0);
-          if (*end || errno || (passes < 0)) {
-              fprintf(stderr, "Invalid argument for --blur-passes=\n");
-              exit(0);
-          }
-      } else if (!strcmp(argv[i], "--bloom-lq")) {
-          bloom_lq = true;
-      } else {
-          fprintf(stderr, "Unknown parameter %s. Try --help.\n", argv[i]);
-          exit(1);
+      exit(0);
+    } else if (!strncmp(argv[i], "--blur-passes=", strlen("--blur-passes="))) {
+      char *end = argv[i] + strlen("--blur-passes=");
+      if (!*end) {
+        fprintf(stderr, "Missing argument for --blur-passes=.\n");
+        exit(0);
       }
+
+      errno = 0;
+      passes = strtol(end, &end, 0);
+      if (*end || errno || (passes < 0)) {
+        fprintf(stderr, "Invalid argument for --blur-passes=\n");
+        exit(0);
+      }
+    } else if (!strcmp(argv[i], "--bloom-lq")) {
+      bloom_lq = true;
+    } else if (!strcmp(argv[i], "--no-ssao")) {
+      ssao = false;
+    } else {
+      fprintf(stderr, "Unknown parameter %s. Try --help.\n", argv[i]);
+      exit(1);
+    }
   }
 
 
-  gl_renderer()->parameters(passes, bloom_lq);
+  gl_renderer()->parameters(passes, bloom_lq, ssao);
 
   al_renderer()->camera_position() = vec3_type(0.f, 0.f, -100.f);
   gl_renderer()->camera_position() = vec3_type(0.f, 0.f, -100.f);
