@@ -6,6 +6,8 @@
 #include <cstdio>
 #include <stdexcept>
 
+#include "resource_finder.hpp"
+
 #include "flappy_box/view/world_gl_drawable.hpp"
 
 
@@ -21,7 +23,7 @@ static gl::program *world_prg;
 WorldGlDrawable::WorldGlDrawable(const std::shared_ptr<const flappy_box::model::World> &w):
   _model(w)
 {
-  gl::obj world = gl::load_obj("res/world.obj");
+  gl::obj world = gl::load_obj(find_resource_file("world.obj").c_str());
 
   if (world.sections.size() != 1) {
     throw std::runtime_error("Could not load world.obj: Mesh does not have exactly one section");
@@ -37,8 +39,8 @@ WorldGlDrawable::WorldGlDrawable(const std::shared_ptr<const flappy_box::model::
 
   gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
 
-  vsh.load("res/world_vert.glsl");
-  fsh.load("res/world_frag.glsl");
+  vsh.load(find_resource_file("world_vert.glsl").c_str());
+  fsh.load(find_resource_file("world_frag.glsl").c_str());
 
   if (!vsh.compile() || !fsh.compile()) {
     throw std::runtime_error("Could not compile world shaders");

@@ -3,6 +3,8 @@
 #include <dake/gl/shader.hpp>
 #include <dake/gl/vertex_array.hpp>
 
+#include "resource_finder.hpp"
+
 #include "flappy_box/view/box_gl_drawable.hpp"
 
 #include <algorithm>
@@ -31,7 +33,7 @@ BoxGlDrawable::BoxGlDrawable(const std::shared_ptr<Box> &b):
   }
 
 
-  gl::obj box = gl::load_obj("res/box.obj");
+  gl::obj box = gl::load_obj(find_resource_file("box.obj").c_str());
 
   // Fit into 1x1x1 box
   float scale = HUGE_VALF;
@@ -57,9 +59,9 @@ BoxGlDrawable::BoxGlDrawable(const std::shared_ptr<Box> &b):
 
   gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT), fog_fsh(gl::shader::FRAGMENT);
 
-  vsh.load("res/box_vert.glsl");
-  fsh.load("res/box_frag.glsl");
-  fog_fsh.load("res/box_fog_frag.glsl");
+  vsh.load(find_resource_file("box_vert.glsl").c_str());
+  fsh.load(find_resource_file("box_frag.glsl").c_str());
+  fog_fsh.load(find_resource_file("box_fog_frag.glsl").c_str());
 
   if (!vsh.compile() || !fsh.compile() || !fog_fsh.compile()) {
     throw std::runtime_error("Could not compile box shaders");

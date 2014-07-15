@@ -7,6 +7,8 @@
 #include <dake/helper/function.hpp>
 #include <dake/math/matrix.hpp>
 
+#include "resource_finder.hpp"
+
 #include "flappy_box/model/paddle.hpp"
 #include "flappy_box/view/paddle_gl_drawable.hpp"
 
@@ -52,8 +54,8 @@ PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
 
   gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
 
-  vsh.load("res/paddle_vert.glsl");
-  fsh.load("res/paddle_frag.glsl");
+  vsh.load(find_resource_file("paddle_vert.glsl").c_str());
+  fsh.load(find_resource_file("paddle_frag.glsl").c_str());
 
   if (!vsh.compile() || !fsh.compile()) {
     throw std::runtime_error("Could not compile paddle shaders");
@@ -80,8 +82,8 @@ PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
 
   gl::shader vvsh(gl::shader::VERTEX), vfsh(gl::shader::FRAGMENT);
 
-  vvsh.load("res/vortex_vert.glsl");
-  vfsh.load("res/vortex_frag.glsl");
+  vvsh.load(find_resource_file("vortex_vert.glsl").c_str());
+  vfsh.load(find_resource_file("vortex_frag.glsl").c_str());
 
   if (!vvsh.compile() || !vfsh.compile()) {
     throw std::runtime_error("Could not compile vortex shaders");

@@ -7,6 +7,8 @@
 #include <memory>
 #include <stdexcept>
 
+#include "resource_finder.hpp"
+
 #include "flappy_box/view/explosion_gl_drawable.hpp"
 
 
@@ -44,9 +46,9 @@ ExplosionGlDrawable::ExplosionGlDrawable(const std::shared_ptr<const Explosion> 
 
   gl::shader vsh(gl::shader::VERTEX), gsh(gl::shader::GEOMETRY), fsh(gl::shader::FRAGMENT);
 
-  vsh.load("res/particle_vert.glsl");
-  gsh.load("res/particle_geom.glsl");
-  fsh.load("res/particle_frag.glsl");
+  vsh.load(find_resource_file("particle_vert.glsl").c_str());
+  gsh.load(find_resource_file("particle_geom.glsl").c_str());
+  fsh.load(find_resource_file("particle_frag.glsl").c_str());
 
   if (!vsh.compile() || !gsh.compile() || !fsh.compile()) {
     throw std::runtime_error("Could not compile particle shaders");
