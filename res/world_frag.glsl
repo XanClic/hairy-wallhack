@@ -24,6 +24,6 @@ void main(void)
   float diff_co = 8.0 * max(0.0, dot(normalize(vf_normal), inv_light_dir)) / pow(length(inv_light_dir), 1.6);
   vec3 real_col = get_color() * diff_co;
 
-  out_mi = vec4(mix(real_col, vec3(0.7, 0.7, 0.7), smoothstep(0.996, 0.999, gl_FragCoord.z))      , 1.0);
+  out_mi = vec4(mix(real_col, vec3(0.8, 0.8, 0.8), smoothstep(0.996, 0.999, gl_FragCoord.z))      , 1.0);
   out_hi = vec4(mix(real_col, vec3(0.0, 0.0, 0.0), smoothstep(0.996, 0.999, gl_FragCoord.z)) / 2.5, 1.0);
 }

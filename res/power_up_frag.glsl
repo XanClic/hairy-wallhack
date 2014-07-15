@@ -23,6 +23,6 @@ void main(void)
   vec3 col = light_strength * (diff_co * diffuse + spec_co * specular);
 
   // make them appear faster than normal
-  out_mi = vec4(mix(col, vec3(0.7, 0.7, 0.7), smoothstep(0.995, 0.999, gl_FragCoord.z))      , 1.0);
+  out_mi = vec4(mix(col, vec3(0.8, 0.8, 0.8), smoothstep(0.995, 0.999, gl_FragCoord.z))      , 1.0);
   out_hi = vec4(mix(col, vec3(0.0, 0.0, 0.0), smoothstep(0.995, 0.999, gl_FragCoord.z)) / 5.0, 1.0);
 }
