@@ -341,13 +341,9 @@ void GlRenderer::visualize_model( GlutWindow& w )
     fb->depth().bind();
     ssao_noise->bind();
 
-    static float tmp_ofs = 0.f;
-    tmp_ofs = fmodf(tmp_ofs + _game_model->timestep().count() * 2.f, 1.f);
-
     ssao_prg->uniform<gl::texture>("depth_tex") = fb->depth();
     ssao_prg->uniform<gl::texture>("noise_tex") = *ssao_noise;
-    ssao_prg->uniform<vec2>("epsilon") = vec2(1.f / width, 1.f / height);
-    ssao_prg->uniform<float>("temporal_offset") = tmp_ofs;
+    ssao_prg->uniform<vec2>("epsilon") = vec2(1.f / width, 1.f / height);;
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
