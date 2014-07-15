@@ -41,7 +41,7 @@ Explosion::Explosion(Type tp, const PowerUp &source, const std::string &name):
     case PowerUp::LIFE:            base_color = vec3_type(.4f, 1.f, .2f); info = "1up"; break;
     case PowerUp::STICKY_WALLS:    base_color = vec3_type(.5f, .7f, 1.f); info = "the walls are jelly"; break;
     case PowerUp::SLOW_GAME:       base_color = vec3_type(HUGE_VALF, HUGE_VALF, HUGE_VALF); info = "who homu here"; break;
-    case PowerUp::EVAPORATE_BOXES: base_color = vec3_type(1.f, 1.f, 1.f); info = "Smoking kills"; break;
+    case PowerUp::EVAPORATE_BOXES: base_color = vec3_type(1.f, 1.f, 1.f); info = "are you a wizard"; break;
     case PowerUp::PADDLE_SMALLER:  base_color = vec3_type(1.f, .3f, .2f); info = "Honey, I Shrunk the Paddle"; break;
     case PowerUp::QUICKEN_GAME:    base_color = vec3_type(HUGE_VALF, HUGE_VALF, HUGE_VALF); info = "2fast4u"; break;
     case PowerUp::DECREASE_FAN:    base_color = vec3_type(1.f, .8f, .2f); info = "Money was tight again this month"; break;
