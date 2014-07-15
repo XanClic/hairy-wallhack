@@ -43,5 +43,15 @@ bool PaddleLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt
     }
   }
 
+  for (scalar_type *scale: {&_model->scale(), &_model->relativeFanPower()}) {
+    if (*scale < 1.f) {
+      *scale *= exp(timestep_sec / 10.f);
+
+      if (*scale > 1.f) {
+        *scale = 1.f;
+      }
+    }
+  }
+
   return false;
 }

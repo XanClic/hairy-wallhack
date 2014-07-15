@@ -97,11 +97,13 @@ add_executable( audiophile src/main.cpp
                            src/flappy_box/model/explosion.cpp
                            src/flappy_box/model/game_over.cpp
                            src/flappy_box/model/paddle.cpp
+                           src/flappy_box/model/power_up.cpp
                            src/flappy_box/model/world.cpp
                            src/flappy_box/controller/box_object_logic.cpp
                            src/flappy_box/controller/explosion_logic.cpp
                            src/flappy_box/controller/flappy_engine.cpp 
                            src/flappy_box/controller/paddle_logic.cpp
+                           src/flappy_box/controller/power_up_logic.cpp
                            src/flappy_box/controller/world_logic.cpp
                            src/flappy_box/view/box_al_audible.cpp
                            src/flappy_box/view/box_gl_drawable.cpp
@@ -109,8 +111,9 @@ add_executable( audiophile src/main.cpp
                            src/flappy_box/view/explosion_al_audible.cpp
                            src/flappy_box/view/game_over_al_audible.cpp
                            src/flappy_box/view/game_over_gl_drawable.cpp
-                           src/flappy_box/view/paddle_al_audible.cpp
                            src/flappy_box/view/paddle_gl_drawable.cpp
+                           src/flappy_box/view/paddle_al_audible.cpp
+                           src/flappy_box/view/power_up_gl_drawable.cpp
                            src/flappy_box/view/world_al_audible.cpp
                            src/flappy_box/view/world_gl_drawable.cpp
 

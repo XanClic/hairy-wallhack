@@ -57,9 +57,9 @@ BoxGlDrawable::BoxGlDrawable(const std::shared_ptr<Box> &b):
 
   gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT), fog_fsh(gl::shader::FRAGMENT);
 
-  vsh.load("res/box_vsh.glsl");
-  fsh.load("res/box_fsh.glsl");
-  fog_fsh.load("res/box_fog_fsh.glsl");
+  vsh.load("res/box_vert.glsl");
+  fsh.load("res/box_frag.glsl");
+  fog_fsh.load("res/box_fog_frag.glsl");
 
   if (!vsh.compile() || !fsh.compile() || !fog_fsh.compile()) {
     throw std::runtime_error("Could not compile box shaders");

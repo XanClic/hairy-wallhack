@@ -8,6 +8,7 @@
 
 #include "model/game_object.hpp"
 #include "flappy_box/model/box.hpp"
+#include "flappy_box/model/power_up.hpp"
 
 
 namespace flappy_box
@@ -19,9 +20,14 @@ namespace flappy_box
         enum Type {
           BOX_BOX_COLLISION,
           BOX_FLOOR_CRASH,
+          BOX_EVAPORATE,
+
+          GOOD_POWER_UP_COLLECTED,
+          BAD_POWER_UP_COLLECTED,
         };
 
-        Explosion(Type t, const Box &source, const vec3_type &base_color, size_t particles, scalar_type max_lifetime, const std::string &name = "Explosion");
+        Explosion(Type t, const Box &source, const std::string &name = "Explosion");
+        Explosion(Type t, const PowerUp &source, const std::string &name = "Explosion");
 
         const std::vector<vec3_type> &particle_positions(void) const { return part_pos; }
         std::vector<vec3_type> &particle_positions(void) { return part_pos; }
@@ -47,6 +53,8 @@ namespace flappy_box
         const vec3_type &max_position(void) const { return max_pos; }
         const vec3_type &initial_position(void) const { return ini_pos; }
 
+        const char *info_text(void) const { return info; }
+
 
       private:
         std::vector<vec3_type> part_pos, part_vel, part_col;
@@ -57,8 +65,11 @@ namespace flappy_box
 
         Type t;
         vec3_type ini_pos, max_pos;
+        const char *info = nullptr;
 
         std::default_random_engine rng;
+
+        void generate(const vec3_type &velocity, const vec3_type &size, const vec3_type &base_color);
     };
   }
 }

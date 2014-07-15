@@ -35,6 +35,12 @@ namespace flappy_box
 
         scalar_type maxVelocity(void) const { return max_velocity; }
 
+        scalar_type &scale(void) { return s; }
+        scalar_type scale(void) const { return s; }
+
+        scalar_type &relativeFanPower(void) { return fs; }
+        scalar_type relativeFanPower(void) const { return fs; }
+
 
       private:
         vec3_type _position      = vec3_type(0.f, 0.f, 0.f);
@@ -43,6 +49,8 @@ namespace flappy_box
         vec3_type _acceleration  = vec3_type(0.f, 0.f, 0.f);
         vec3_type _size          = vec3_type(1.f, 1.f, 1.f);
         vec3_type _playerControl = vec3_type(0.f, 0.f, 0.f);
+
+        scalar_type s = 1.f, fs = 1.f;
 
         static const constexpr scalar_type max_velocity = 200.f;
     };

@@ -4,6 +4,7 @@
 #include <dake/gl/texture.hpp>
 #include <dake/gl/vertex_array.hpp>
 #include <dake/gl/vertex_attrib.hpp>
+#include <dake/helper/function.hpp>
 #include <dake/math/matrix.hpp>
 
 #include <memory>
@@ -21,6 +22,7 @@
 
 using namespace dake;
 using namespace dake::math;
+using namespace dake::helper;
 using namespace ::view;
 
 
@@ -127,8 +129,8 @@ void GlRenderer::init_with_context(void)
 
   gl::shader char_vsh(gl::shader::VERTEX), char_fsh(gl::shader::FRAGMENT);
 
-  char_vsh.load("res/char_vsh.glsl");
-  char_fsh.load("res/char_fsh.glsl");
+  char_vsh.load("res/char_vert.glsl");
+  char_fsh.load("res/char_frag.glsl");
 
   if (!char_vsh.compile() || !char_fsh.compile()) {
     throw std::runtime_error("Could not compile character rendering shaders");
@@ -237,6 +239,34 @@ void GlRenderer::visualize_model( GlutWindow& w )
   }
 
 
+  if (!log.empty()) {
+    // Remove old entries
+    float timestep_sec = _game_model->timestep().count();
+    for (auto it = log.begin(); it != log.end();) {
+      it->lifetime -= timestep_sec;
+      if (it->lifetime <= 0.f) {
+        it = log.erase(it);
+      } else {
+        ++it;
+      }
+    }
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+
+    // Display other entries
+    float line_y = -1.f + log.size() * char_size.y();
+    for (const LogEntry &e: log) {
+      float col = minimum(1.f, e.lifetime);
+      render_line(vec2(-1.f, line_y), e.msg.c_str(), vec3(col, col, col));
+
+      line_y -= char_size.y();
+    }
+
+    glDisable(GL_BLEND);
+  }
+
+
   if (bloom_blur_passes) {
     glViewport(0, 0, width / 2, height / 2);
 
@@ -321,6 +351,29 @@ void GlRenderer::render_line(vec2 pos, const char *string, vec3 color)
     render_character(pos, chr, color);
     pos.x() += 6.f / 5.f * char_size.x();
   }
+}
+
+
+vec2 GlRenderer::line_size(const char *s) const
+{
+  size_t mbslen = 0;
+
+  while (*s) {
+    if ((*s & 0x80) && ((*s & 0xe0) == 0xc0) && ((s[1] & 0xc0) == 0x80)) {
+      s++;
+    }
+
+    mbslen++;
+    s++;
+  }
+
+  return vec2(mbslen * 6.f / 5.f * char_size.x(), char_size.y());
+}
+
+
+void GlRenderer::log_add(const std::string &msg)
+{
+  log.emplace_back(msg, 10.f);
 }
 
 

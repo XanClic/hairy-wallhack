@@ -28,6 +28,7 @@ namespace flappy_box
         const model::Explosion *_model;
 
         dake::gl::vertex_array particles_va;
+        bool newfag = true;
     };
   }
 }

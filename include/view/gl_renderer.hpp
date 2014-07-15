@@ -8,6 +8,8 @@
 #include <dake/math/matrix.hpp>
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "model/game.hpp"
 
@@ -51,6 +53,9 @@ namespace view
       void render_character(dake::math::vec2 pos, unsigned char c, dake::math::vec3 color = dake::math::vec3(1.f, 1.f, 1.f));
       void render_line(dake::math::vec2 pos, const char *string, dake::math::vec3 color = dake::math::vec3(1.f, 1.f, 1.f));
       const dake::math::vec2 &character_size(void) const { return char_size; }
+      dake::math::vec2 line_size(const char *string) const;
+
+      void log_add(const std::string &msg);
 
       void parameters(long passes, bool bloom_lq);
       bool has_bloom(void) const { return bloom_blur_passes; }
@@ -60,6 +65,14 @@ namespace view
 
 
     private:
+      struct LogEntry {
+        LogEntry(void) {}
+        LogEntry(const std::string &m, float lt): msg(m), lifetime(lt) {}
+
+        std::string msg;
+        float lifetime;
+      };
+
       std::shared_ptr<const model::Game> _game_model;
       delegate_factory_type _drawable_factory;
 
@@ -78,6 +91,7 @@ namespace view
       bool bloom_use_lq = false;
       long bloom_blur_passes = 5;
 
+      std::vector<LogEntry> log;
   }; // GlRenderer
 
 } // view::
