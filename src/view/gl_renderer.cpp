@@ -47,10 +47,11 @@ const GlRenderer::delegate_factory_type &GlRenderer::drawable_factory(void) cons
 }
 
 
-void GlRenderer::parameters(long passes, bool bloom_lq)
+void GlRenderer::parameters(long passes, bool bloom_lq, bool do_ssao)
 {
-    bloom_use_lq = bloom_lq;
-    bloom_blur_passes = passes;
+  bloom_use_lq = bloom_lq;
+  bloom_blur_passes = passes;
+  ssao = do_ssao;
 }
 
 
@@ -67,6 +68,9 @@ void GlRenderer::init_with_context(void)
   (*fb)[0].set_tmu(1);
   (*fb)[1].set_tmu(0);
 
+  // May not be 0 or 1, as it is bound together with the FB textures
+  fb->depth().set_tmu(2);
+
 
   blur_fbs[0] = std::make_shared<gl::framebuffer>(1);
   blur_fbs[1] = std::make_shared<gl::framebuffer>(1);
@@ -80,6 +84,29 @@ void GlRenderer::init_with_context(void)
     blur_fbs[0]->color_format(0, GL_R11F_G11F_B10F);
     blur_fbs[1]->color_format(0, GL_R11F_G11F_B10F);
   }
+
+
+  ssao_fb = std::make_shared<gl::framebuffer>(1);
+
+  (*ssao_fb)[0].set_tmu(3);
+
+
+  ssao_blur_fbs[0] = std::make_shared<gl::framebuffer>(1);
+  ssao_blur_fbs[1] = std::make_shared<gl::framebuffer>(1);
+
+  // may not be 0 or 1, as they are bound together with the FB textures
+  // may not be 2, as they are bound together with the FB depth
+  (*ssao_blur_fbs[0])[0].set_tmu(3);
+  (*ssao_blur_fbs[1])[0].set_tmu(4);
+
+  (*ssao_blur_fbs[0])[0].filter(GL_LINEAR);
+  (*ssao_blur_fbs[1])[0].filter(GL_LINEAR);
+
+
+  ssao_output_fb = std::make_shared<gl::framebuffer>(2);
+
+  (*ssao_output_fb)[0].set_tmu(1);
+  (*ssao_output_fb)[1].set_tmu(0);
 
 
   gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
@@ -128,6 +155,41 @@ void GlRenderer::init_with_context(void)
   }
 
 
+  gl::shader ssao_fsh(gl::shader::FRAGMENT), ssao_blur_x(gl::shader::FRAGMENT), ssao_blur_y(gl::shader::FRAGMENT), ssao_apply_fsh(gl::shader::FRAGMENT);
+
+  ssao_fsh.load(find_resource_file("ssao_frag.glsl").c_str());
+  ssao_blur_x.load(find_resource_file("ssao_blur_x_frag.glsl").c_str());
+  ssao_blur_y.load(find_resource_file("ssao_blur_y_frag.glsl").c_str());
+  ssao_apply_fsh.load(find_resource_file("ssao_apply_frag.glsl").c_str());
+
+  if (!ssao_fsh.compile() || !ssao_blur_x.compile() || !ssao_blur_y.compile() || !ssao_apply_fsh.compile()) {
+    throw std::runtime_error("Could not compile SSAO shaders");
+  }
+
+  for (std::shared_ptr<gl::program> *prg: {&ssao_prg, &ssao_blur_prg[0], &ssao_blur_prg[1], &ssao_apply_prg}) {
+    *prg = std::make_shared<gl::program>();
+
+    **prg << vsh;
+    **prg << (prg == &ssao_prg         ? ssao_fsh :
+              prg == &ssao_apply_prg   ? ssao_apply_fsh :
+              prg == &ssao_blur_prg[0] ? ssao_blur_x :
+                                         ssao_blur_y);
+
+    (*prg)->bind_attrib("in_pos", 0);
+
+    if (prg == &ssao_apply_prg) {
+      (*prg)->bind_frag("out_mi", 0);
+      (*prg)->bind_frag("out_hi", 1);
+    } else {
+      (*prg)->bind_frag("out_color", 0);
+    }
+
+    if (!(*prg)->link()) {
+      throw std::runtime_error("Could not link SSAO program");
+    }
+  }
+
+
   gl::shader char_vsh(gl::shader::VERTEX), char_fsh(gl::shader::FRAGMENT);
 
   char_vsh.load(find_resource_file("char_vert.glsl").c_str());
@@ -153,6 +215,8 @@ void GlRenderer::init_with_context(void)
 
 
   bitmap_font = std::make_shared<gl::texture>(find_resource_file("font.png").c_str());
+
+  ssao_noise = std::make_shared<gl::texture>(find_resource_file("ssao-noise.png").c_str());
 
 
   fb_vertices = std::make_shared<gl::vertex_array>();
@@ -268,10 +332,74 @@ void GlRenderer::visualize_model( GlutWindow& w )
   }
 
 
+  const gl::texture *color_mi = &(*fb)[0], *color_hi = &(*fb)[1];
+
+  if (ssao) {
+    ssao_prg->use();
+    ssao_fb->bind();
+
+    fb->depth().bind();
+    ssao_noise->bind();
+
+    static float tmp_ofs = 0.f;
+    tmp_ofs = fmodf(tmp_ofs + _game_model->timestep().count() * 2.f, 1.f);
+
+    ssao_prg->uniform<gl::texture>("depth_tex") = fb->depth();
+    ssao_prg->uniform<gl::texture>("noise_tex") = *ssao_noise;
+    ssao_prg->uniform<vec2>("epsilon") = vec2(1.f / width, 1.f / height);
+    ssao_prg->uniform<float>("temporal_offset") = tmp_ofs;
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    fb_vertices->draw(GL_TRIANGLE_STRIP);
+
+
+    const gl::texture *input_tex = &(*ssao_fb)[0];
+    for (int i = 0, cur_fb = 0; i < 4; i++, cur_fb ^= 1) {
+      ssao_blur_prg[cur_fb]->use();
+      ssao_blur_fbs[cur_fb]->bind();
+
+      input_tex->bind();
+      fb->depth().bind();
+      ssao_blur_prg[cur_fb]->uniform<gl::texture>("input_tex") = *input_tex;
+      ssao_blur_prg[cur_fb]->uniform<gl::texture>("depth_tex") = fb->depth();
+      ssao_blur_prg[cur_fb]->uniform<float>("epsilon") = (2.f - i / 2) / (cur_fb ? height : width);
+
+      glClear(GL_DEPTH_BUFFER_BIT);
+
+      fb_vertices->draw(GL_TRIANGLE_STRIP);
+
+      input_tex = &(*ssao_blur_fbs[cur_fb])[0];
+    }
+
+
+    ssao_apply_prg->use();
+    ssao_output_fb->bind();
+
+    input_tex->bind();
+    (*fb)[0].bind();
+    (*fb)[1].bind();
+    fb->depth().bind();
+
+    ssao_apply_prg->uniform<gl::texture>("ssao") = *input_tex;
+    ssao_apply_prg->uniform<gl::texture>("fb_mi") = (*fb)[0];
+    ssao_apply_prg->uniform<gl::texture>("fb_hi") = (*fb)[1];
+    ssao_apply_prg->uniform<gl::texture>("depth_tex") = fb->depth();
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    fb_vertices->draw(GL_TRIANGLE_STRIP);
+
+
+    color_mi = &(*ssao_output_fb)[0];
+    color_hi = &(*ssao_output_fb)[1];
+  }
+
+
   if (bloom_blur_passes) {
     glViewport(0, 0, width / 2, height / 2);
 
-    const gl::texture *input_tex = &(*fb)[1];
+    const gl::texture *input_tex = color_hi;
     for (int i = 0, cur_fb = 0; i < bloom_blur_passes * 2; i++, cur_fb ^= 1) {
       blur_prg[cur_fb]->use();
       blur_fbs[cur_fb]->bind();
@@ -280,25 +408,25 @@ void GlRenderer::visualize_model( GlutWindow& w )
       blur_prg[cur_fb]->uniform<gl::texture>("input_tex") = *input_tex;
       blur_prg[cur_fb]->uniform<float>("epsilon") = exp2((6 - i / 2) / 2.f) / (cur_fb ? height / 2 : width / 2);
 
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      glClear(GL_DEPTH_BUFFER_BIT);
 
       fb_vertices->draw(GL_TRIANGLE_STRIP);
 
-      input_tex = & (*blur_fbs[cur_fb])[0];
+      input_tex = &(*blur_fbs[cur_fb])[0];
     }
 
 
     gl::framebuffer::unbind();
     glViewport(0, 0, width, height);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    color_mi->bind();
+    input_tex->bind();
 
     fb_prg->use();
 
-    (*fb)[0].bind();
-    input_tex->bind();
-
-    fb_prg->uniform<gl::texture>("fb_mi") = (*fb)[0];
+    fb_prg->uniform<gl::texture>("fb_mi") = *color_mi;
     fb_prg->uniform<gl::texture>("fb_hi") = *input_tex;
 
     fb_vertices->draw(GL_TRIANGLE_STRIP);
@@ -384,6 +512,10 @@ void GlRenderer::resize(GlutWindow &win)
   height = win.height();
 
   fb->resize(width, height);
+  ssao_fb->resize(width, height);
+  ssao_blur_fbs[0]->resize(width, height);
+  ssao_blur_fbs[1]->resize(width, height);
+  ssao_output_fb->resize(width, height);
   blur_fbs[0]->resize(width / 2, height / 2);
   blur_fbs[1]->resize(width / 2, height / 2);
 
