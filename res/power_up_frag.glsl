@@ -15,7 +15,7 @@ void main(void)
   vec3 normal = normalize(vf_normal);
   vec3 to_viewer = normalize(cam_pos - vf_position);
 
-  float light_strength = 42.0 / length(inv_light);
+  float light_strength = 50.0 / length(inv_light);
 
   float diff_co = max(0.0, dot(normal, inv_light_dir));
   float spec_co = pow(max(0.0, dot(reflect(normalize(inv_light), normal), to_viewer)), 20.0) ;
@@ -23,6 +23,6 @@ void main(void)
   vec3 col = light_strength * (diff_co * diffuse + spec_co * specular);
 
   // make them appear faster than normal
-  out_mi = vec4(mix(col, vec3(0.8, 0.8, 0.8), smoothstep(0.995, 0.999, gl_FragCoord.z))      , 1.0);
-  out_hi = vec4(mix(col, vec3(0.0, 0.0, 0.0), smoothstep(0.995, 0.999, gl_FragCoord.z)) / 5.0, 1.0);
+  out_mi = vec4(mix(col, vec3(0.8, 0.8, 0.8), smoothstep(0.9965, 0.999, gl_FragCoord.z))      , 1.0);
+  out_hi = vec4(mix(col, vec3(0.0, 0.0, 0.0), smoothstep(0.9965, 0.999, gl_FragCoord.z)) / 5.0, 1.0);
 }
