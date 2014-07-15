@@ -58,7 +58,7 @@ void FlappyEngine::init( int& argc, char** argv )
   // TODO: Remove arguments
   long passes = 5;
   bool bloom_lq = false;
-  bool ssao = true;
+  ::view::GlRenderer::SSAOQuality ssao = ::view::GlRenderer::HQ_SSAO;
 
   for (int i = 1; i < argc; i++) {
     if (!strcmp(argv[i], "--help")) {
@@ -66,26 +66,39 @@ void FlappyEngine::init( int& argc, char** argv )
       printf("  --blur-passes=n: Sets the number of bloom blur passes (default: %li);\n", passes);
       printf("                   use 0 to disable bloom\n");
       printf("  --bloom-lq:      Reduces the bloom quality by using an integer FBO\n");
-      printf("  --no-ssao:       Disables Screen Space Ambient Occlusion\n");
+      printf("  --ssao=which:    Select Screen Space Ambient Occlusion Quality (none, lq, hq (default))\n");
 
       exit(0);
     } else if (!strncmp(argv[i], "--blur-passes=", strlen("--blur-passes="))) {
       char *end = argv[i] + strlen("--blur-passes=");
       if (!*end) {
         fprintf(stderr, "Missing argument for --blur-passes=.\n");
-        exit(0);
+        exit(1);
       }
 
       errno = 0;
       passes = strtol(end, &end, 0);
       if (*end || errno || (passes < 0)) {
-        fprintf(stderr, "Invalid argument for --blur-passes=\n");
-        exit(0);
+        fprintf(stderr, "Invalid argument for --blur-passes=.\n");
+        exit(1);
       }
     } else if (!strcmp(argv[i], "--bloom-lq")) {
       bloom_lq = true;
-    } else if (!strcmp(argv[i], "--no-ssao")) {
-      ssao = false;
+    } else if (!strncmp(argv[i], "--ssao=", strlen("--ssao="))) {
+      char *end = argv[i] + strlen("--ssao=");
+      if (!*end) {
+        fprintf(stderr, "Missing argument for --ssao=.\n");
+        exit(1);
+      } else if (!strcmp(end, "none")) {
+        ssao = ::view::GlRenderer::NO_SSAO;
+      } else if (!strcmp(end, "lq")) {
+        ssao = ::view::GlRenderer::LQ_SSAO;
+      } else if (!strcmp(end, "hq")) {
+        ssao = ::view::GlRenderer::HQ_SSAO;
+      } else {
+        fprintf(stderr, "Invalid argument for --ssao=.\n");
+        exit(1);
+      }
     } else {
       fprintf(stderr, "Unknown parameter %s. Try --help.\n", argv[i]);
       exit(1);

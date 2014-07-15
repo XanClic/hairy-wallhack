@@ -26,6 +26,12 @@ namespace view
         virtual void visualize(GlRenderer &, GlutWindow &) = 0;
       };
 
+      enum SSAOQuality {
+        NO_SSAO,
+        LQ_SSAO,
+        HQ_SSAO
+      };
+
       typedef factory_map<model::GameObject, Drawable> delegate_factory_type;
 
       GlRenderer(void) = delete;
@@ -57,7 +63,7 @@ namespace view
 
       void log_add(const std::string &msg);
 
-      void parameters(long passes, bool bloom_lq, bool ssao);
+      void parameters(long passes, bool bloom_lq, SSAOQuality ssao);
       bool has_bloom(void) const { return bloom_blur_passes; }
 
       virtual void visualize_model(GlutWindow &);
@@ -90,7 +96,7 @@ namespace view
 
       bool bloom_use_lq = false;
       long bloom_blur_passes = 5;
-      bool ssao = true;
+      SSAOQuality ssao = HQ_SSAO;
 
       std::vector<LogEntry> log;
   }; // GlRenderer
