@@ -52,8 +52,8 @@ PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
 
   gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
 
-  vsh.load("res/paddle_vsh.glsl");
-  fsh.load("res/paddle_fsh.glsl");
+  vsh.load("res/paddle_vert.glsl");
+  fsh.load("res/paddle_frag.glsl");
 
   if (!vsh.compile() || !fsh.compile()) {
     throw std::runtime_error("Could not compile paddle shaders");
@@ -80,8 +80,8 @@ PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
 
   gl::shader vvsh(gl::shader::VERTEX), vfsh(gl::shader::FRAGMENT);
 
-  vvsh.load("res/vortex_vsh.glsl");
-  vfsh.load("res/vortex_fsh.glsl");
+  vvsh.load("res/vortex_vert.glsl");
+  vfsh.load("res/vortex_frag.glsl");
 
   if (!vvsh.compile() || !vfsh.compile()) {
     throw std::runtime_error("Could not compile vortex shaders");
@@ -252,6 +252,7 @@ void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 
   mat4 mv = mat4::identity();
   mv.translate(_model->position());
+  mv.scale(vec3(_model->scale(), _model->scale(), _model->scale()));
 
   paddle_prg->use();
   paddle_prg->uniform<mat4>("mv") = mv;
@@ -292,14 +293,14 @@ void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 
   for (int v = 0; v < vortex_cnt; v++) {
     for (int s = vortex_line_len - 1; s > 0; s--) {
-      vortex_dat[v][s][0] = vortex_dat[v][s - 1][0] + vec3_type(0.f, timestep_sec * vortex_speed, 0.f);
-      vortex_dat[v][s][1] = vortex_dat[v][s][0] + (vortex_dat[v][s - 1][1] - vortex_dat[v][s - 1][0]) * 1.075f;
+      vortex_dat[v][s][0] = vortex_dat[v][s - 1][0] + vec3_type(0.f, _model->relativeFanPower() * timestep_sec * vortex_speed, 0.f);
+      vortex_dat[v][s][1] = vortex_dat[v][s][0] + (vortex_dat[v][s - 1][1] - vortex_dat[v][s - 1][0]) * (1.f + .075f * powf(_model->relativeFanPower(), .5f));
     }
 
     float a = 2.f * static_cast<float>(M_PI) * v / vortex_cnt - blades_ang;
 
     vortex_dat[v][0][0] = _model->position();
-    vortex_dat[v][0][1] = _model->position() + vec3((r0 - r1) * cosf(a), 1.5f * r1, (r0 - r1) * sinf(a));
+    vortex_dat[v][0][1] = _model->position() + _model->scale() * vec3((r0 - r1) * cosf(a), 1.5f * r1, (r0 - r1) * sinf(a));
 
     vec3 *vd = static_cast<vec3 *>(vortex_vas[v].attrib(0)->map());
     for (int s = 0; s < vortex_line_len; s++) {

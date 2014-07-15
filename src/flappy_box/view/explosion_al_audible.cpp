@@ -17,14 +17,40 @@ ExplosionAlAudible::ExplosionAlAudible(const std::shared_ptr<const Explosion> &x
 void ExplosionAlAudible::auralize(AlRenderer &r)
 {
   if (newfag) {
-    float pitch = 1.7f, gain = 40.f;
+    newfag = false;
 
-    if (_model->type() == Explosion::BOX_FLOOR_CRASH) {
-      pitch = .8f;
-      gain  = 150.f;
+    const char *file;
+    float pitch, gain;
+
+    switch (_model->type()) {
+      case Explosion::BOX_BOX_COLLISION:
+        file  = "crash.wav";
+        pitch = 1.7f;
+        gain  = 40.f;
+        break;
+
+      case Explosion::BOX_FLOOR_CRASH:
+        file  = "crash.wav";
+        pitch = .8f;
+        gain  = 150.f;
+        break;
+
+      case Explosion::BOX_EVAPORATE:
+        return;
+
+      case Explosion::GOOD_POWER_UP_COLLECTED:
+        file  = "bling_high.wav";
+        pitch = 1.f;
+        gain  = 200.f;
+        break;
+
+      case Explosion::BAD_POWER_UP_COLLECTED:
+        file  = "bling_low.wav";
+        pitch = 1.f;
+        gain  = 200.f;
+        break;
     }
 
-    SoundProvider::getInstance()->playSound(r, "crash.wav", r.spherical_projection(_model->initial_position(), _model->max_position()), gain, pitch, false);
-    newfag = false;
+    SoundProvider::getInstance()->playSound(r, file, r.spherical_projection(_model->initial_position(), _model->max_position()), gain, pitch, false);
   }
 }

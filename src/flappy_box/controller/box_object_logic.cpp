@@ -42,7 +42,7 @@ bool BoxObjectLogic::advance(Logic &l, const InputEventHandler::keyboard_event &
   for (int i = 0; i < 3; i++) {
     if (fabs(_model->position()[i]) > _model->maxPosition()[i]) {
       _model->position()[i] = copysignf(_model->maxPosition()[i], _model->position()[i]);
-      _model->velocity()[i] *= -vlcty_damping;
+      _model->velocity()[i] *= -exp(-l.game_model()->stickyWallTimer()) * vlcty_damping;
     }
   }
 

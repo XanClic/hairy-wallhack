@@ -23,19 +23,7 @@ GameOverGlDrawable::~GameOverGlDrawable(void)
 
 float GameOverGlDrawable::centered_x(GlRenderer &r, const char *s)
 {
-  size_t mbslen = 0;
-
-  // compatible with GlRenderer, which is enough
-  while (*s) {
-    if ((*s & 0x80) && ((*s & 0xe0) == 0xc0) && ((s[1] & 0xc0) == 0x80)) {
-      s++;
-    }
-
-    mbslen++;
-    s++;
-  }
-
-  return -.5f * mbslen * r.character_size().x();
+  return -.5f * r.line_size(s).x();
 }
 
 

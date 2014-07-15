@@ -37,8 +37,8 @@ WorldGlDrawable::WorldGlDrawable(const std::shared_ptr<const flappy_box::model::
 
   gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
 
-  vsh.load("res/world_vsh.glsl");
-  fsh.load("res/world_fsh.glsl");
+  vsh.load("res/world_vert.glsl");
+  fsh.load("res/world_frag.glsl");
 
   if (!vsh.compile() || !fsh.compile()) {
     throw std::runtime_error("Could not compile world shaders");

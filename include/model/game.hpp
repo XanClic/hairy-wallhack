@@ -31,6 +31,9 @@ namespace model
       scalar_type gameSpeed(void) const { return game_speed; }
       scalar_type &gameSpeed(void) { return game_speed; }
 
+      scalar_type stickyWallTimer(void) const { return sticky_wall_timer; }
+      scalar_type &stickyWallTimer(void) { return sticky_wall_timer; }
+
   private:
     std::vector<std::shared_ptr<GameObject>>        _objects;
     std::vector<std::shared_ptr<GameObject>> _waitingObjects;
@@ -38,6 +41,7 @@ namespace model
     std::chrono::duration<double>                  _timestep;
 
     scalar_type game_speed = 1.f;
+    scalar_type sticky_wall_timer = 0.f;
   }; // Game
 } // model::
 

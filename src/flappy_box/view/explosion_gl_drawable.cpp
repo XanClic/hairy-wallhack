@@ -81,6 +81,15 @@ ExplosionGlDrawable::~ExplosionGlDrawable(void)
 
 void ExplosionGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 {
+  if (newfag) {
+    newfag = false;
+
+    if (_model->info_text()) {
+      r.log_add(_model->info_text());
+    }
+  }
+
+
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   glDepthMask(GL_FALSE);

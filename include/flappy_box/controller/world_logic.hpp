@@ -27,6 +27,7 @@ namespace flappy_box
         std::default_random_engine rng;
 
         scalar_type add_box_interval_timer = 0.f;
+        scalar_type next_powerup_timer = NAN;
         int box_count = 0;
 
         void addBoxToGame(::controller::Logic &l);
