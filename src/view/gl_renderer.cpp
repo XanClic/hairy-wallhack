@@ -47,8 +47,15 @@ const GlRenderer::delegate_factory_type &GlRenderer::drawable_factory(void) cons
 }
 
 
-void GlRenderer::parameters(long passes, bool bloom_lq, bool do_ssao)
+void GlRenderer::parameters(long passes, bool bloom_lq, SSAOQuality do_ssao)
 {
+  if (passes < 0) {
+    passes = 0;
+  }
+  if (!passes && (do_ssao != NO_SSAO)) {
+    throw std::invalid_argument("Bloom is required for SSAO");
+  }
+
   bloom_use_lq = bloom_lq;
   bloom_blur_passes = passes;
   ssao = do_ssao;
@@ -61,132 +68,164 @@ void GlRenderer::init_with_context(void)
   glEnable(GL_CULL_FACE);
 
 
-  fb = std::make_shared<gl::framebuffer>(2);
+  if (has_bloom()) {
+    fb = std::make_shared<gl::framebuffer>(2);
 
-  // TMU 0 will be used by the blur FBO textures later; they "replace" the
-  // second texture of this FBO
-  (*fb)[0].set_tmu(1);
-  (*fb)[1].set_tmu(0);
+    // TMU 0 will be used by the blur FBO textures later; they "replace" the
+    // second texture of this FBO
+    (*fb)[0].set_tmu(1);
+    (*fb)[1].set_tmu(0);
 
-  // May not be 0 or 1, as it is bound together with the FB textures
-  fb->depth().set_tmu(2);
-
-
-  blur_fbs[0] = std::make_shared<gl::framebuffer>(1);
-  blur_fbs[1] = std::make_shared<gl::framebuffer>(1);
-
-  (*blur_fbs[0])[0].filter(GL_LINEAR);
-  (*blur_fbs[1])[0].filter(GL_LINEAR);
+    // May not be 0 or 1, as it is bound together with the FB textures
+    fb->depth().set_tmu(2);
 
 
-  if (!bloom_use_lq) {
-    fb->color_format(1, GL_R11F_G11F_B10F);
-    blur_fbs[0]->color_format(0, GL_R11F_G11F_B10F);
-    blur_fbs[1]->color_format(0, GL_R11F_G11F_B10F);
-  }
+    blur_fbs[0] = std::make_shared<gl::framebuffer>(1);
+    blur_fbs[1] = std::make_shared<gl::framebuffer>(1);
+
+    (*blur_fbs[0])[0].filter(GL_LINEAR);
+    (*blur_fbs[1])[0].filter(GL_LINEAR);
 
 
-  ssao_fb = std::make_shared<gl::framebuffer>(1);
-
-  (*ssao_fb)[0].set_tmu(3);
-
-
-  ssao_blur_fbs[0] = std::make_shared<gl::framebuffer>(1);
-  ssao_blur_fbs[1] = std::make_shared<gl::framebuffer>(1);
-
-  // may not be 0 or 1, as they are bound together with the FB textures
-  // may not be 2, as they are bound together with the FB depth
-  (*ssao_blur_fbs[0])[0].set_tmu(3);
-  (*ssao_blur_fbs[1])[0].set_tmu(4);
-
-  (*ssao_blur_fbs[0])[0].filter(GL_LINEAR);
-  (*ssao_blur_fbs[1])[0].filter(GL_LINEAR);
-
-
-  ssao_output_fb = std::make_shared<gl::framebuffer>(2);
-
-  (*ssao_output_fb)[0].set_tmu(1);
-  (*ssao_output_fb)[1].set_tmu(0);
-
-
-  gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
-
-  vsh.load(find_resource_file("fb_vert.glsl").c_str());
-  fsh.load(find_resource_file("fb_combine_frag.glsl").c_str());
-
-  if (!vsh.compile() || !fsh.compile()) {
-    throw std::runtime_error("Could not compile FB display shaders");
-  }
-
-  fb_prg = std::make_shared<gl::program>();
-
-  *fb_prg << vsh;
-  *fb_prg << fsh;
-
-  fb_prg->bind_attrib("in_pos", 0);
-  fb_prg->bind_frag("out_color", 0);
-
-  if (!fb_prg->link()) {
-    throw std::runtime_error("Could not link FB display program");
-  }
-
-
-  gl::shader blur_x(gl::shader::FRAGMENT), blur_y(gl::shader::FRAGMENT);
-
-  blur_x.load(find_resource_file("fb_blur_x_frag.glsl").c_str());
-  blur_y.load(find_resource_file("fb_blur_y_frag.glsl").c_str());
-
-  if (!blur_x.compile() || !blur_y.compile()) {
-    throw std::runtime_error("Could not compile blur shaders");
-  }
-
-  for (int i: {0, 1}) {
-    blur_prg[i] = std::make_shared<gl::program>();
-
-    *blur_prg[i] << vsh;
-    *blur_prg[i] << (i ? blur_y : blur_x);
-
-    blur_prg[i]->bind_attrib("in_pos", 0);
-    blur_prg[i]->bind_frag("out_color", 0);
-
-    if (!blur_prg[i]->link()) {
-      throw std::runtime_error("Could not link blur program");
+    if (!bloom_use_lq) {
+      fb->color_format(1, GL_R11F_G11F_B10F);
+      blur_fbs[0]->color_format(0, GL_R11F_G11F_B10F);
+      blur_fbs[1]->color_format(0, GL_R11F_G11F_B10F);
     }
+  } else {
+    fb = nullptr;
+    blur_fbs[0] = nullptr;
+    blur_fbs[1] = nullptr;
   }
 
 
-  gl::shader ssao_fsh(gl::shader::FRAGMENT), ssao_blur_x(gl::shader::FRAGMENT), ssao_blur_y(gl::shader::FRAGMENT), ssao_apply_fsh(gl::shader::FRAGMENT);
+  if (ssao != NO_SSAO) {
+    ssao_fb = std::make_shared<gl::framebuffer>(1);
 
-  ssao_fsh.load(find_resource_file("ssao_frag.glsl").c_str());
-  ssao_blur_x.load(find_resource_file("ssao_blur_x_frag.glsl").c_str());
-  ssao_blur_y.load(find_resource_file("ssao_blur_y_frag.glsl").c_str());
-  ssao_apply_fsh.load(find_resource_file("ssao_apply_frag.glsl").c_str());
+    (*ssao_fb)[0].set_tmu(3);
 
-  if (!ssao_fsh.compile() || !ssao_blur_x.compile() || !ssao_blur_y.compile() || !ssao_apply_fsh.compile()) {
-    throw std::runtime_error("Could not compile SSAO shaders");
-  }
 
-  for (std::shared_ptr<gl::program> *prg: {&ssao_prg, &ssao_blur_prg[0], &ssao_blur_prg[1], &ssao_apply_prg}) {
-    *prg = std::make_shared<gl::program>();
+    ssao_blur_fbs[0] = std::make_shared<gl::framebuffer>(1);
+    ssao_blur_fbs[1] = std::make_shared<gl::framebuffer>(1);
 
-    **prg << vsh;
-    **prg << (prg == &ssao_prg         ? ssao_fsh :
-              prg == &ssao_apply_prg   ? ssao_apply_fsh :
-              prg == &ssao_blur_prg[0] ? ssao_blur_x :
-                                         ssao_blur_y);
+    // may not be 0 or 1, as they are bound together with the FB textures
+    // may not be 2, as they are bound together with the FB depth
+    (*ssao_blur_fbs[0])[0].set_tmu(3);
+    (*ssao_blur_fbs[1])[0].set_tmu(4);
 
-    (*prg)->bind_attrib("in_pos", 0);
 
-    if (prg == &ssao_apply_prg) {
-      (*prg)->bind_frag("out_mi", 0);
-      (*prg)->bind_frag("out_hi", 1);
-    } else {
-      (*prg)->bind_frag("out_color", 0);
+    if (ssao == LQ_SSAO) {
+      (*ssao_fb)[0].filter(GL_LINEAR);
+      (*ssao_blur_fbs[0])[0].filter(GL_LINEAR);
+      (*ssao_blur_fbs[1])[0].filter(GL_LINEAR);
     }
 
-    if (!(*prg)->link()) {
-      throw std::runtime_error("Could not link SSAO program");
+
+    ssao_output_fb = std::make_shared<gl::framebuffer>(2);
+
+    (*ssao_output_fb)[0].set_tmu(1);
+    (*ssao_output_fb)[1].set_tmu(0);
+  } else {
+    ssao_fb = nullptr;
+    ssao_blur_fbs[0] = nullptr;
+    ssao_blur_fbs[1] = nullptr;
+    ssao_output_fb = nullptr;
+  }
+
+
+  gl::shader vsh(gl::shader::VERTEX);
+
+  if (has_bloom()) {
+    gl::shader fsh(gl::shader::FRAGMENT);
+
+    vsh.load(find_resource_file("fb_vert.glsl").c_str());
+    fsh.load(find_resource_file("fb_combine_frag.glsl").c_str());
+
+    if (!vsh.compile() || !fsh.compile()) {
+      throw std::runtime_error("Could not compile FB display shaders");
     }
+
+    fb_prg = std::make_shared<gl::program>();
+
+    *fb_prg << vsh;
+    *fb_prg << fsh;
+
+    fb_prg->bind_attrib("in_pos", 0);
+    fb_prg->bind_frag("out_color", 0);
+
+    if (!fb_prg->link()) {
+      throw std::runtime_error("Could not link FB display program");
+    }
+
+
+    gl::shader blur_x(gl::shader::FRAGMENT), blur_y(gl::shader::FRAGMENT);
+
+    blur_x.load(find_resource_file("fb_blur_x_frag.glsl").c_str());
+    blur_y.load(find_resource_file("fb_blur_y_frag.glsl").c_str());
+
+    if (!blur_x.compile() || !blur_y.compile()) {
+      throw std::runtime_error("Could not compile blur shaders");
+    }
+
+    for (int i: {0, 1}) {
+      blur_prg[i] = std::make_shared<gl::program>();
+
+      *blur_prg[i] << vsh;
+      *blur_prg[i] << (i ? blur_y : blur_x);
+
+      blur_prg[i]->bind_attrib("in_pos", 0);
+      blur_prg[i]->bind_frag("out_color", 0);
+
+      if (!blur_prg[i]->link()) {
+        throw std::runtime_error("Could not link blur program");
+      }
+    }
+  } else {
+    fb_prg = nullptr;
+    blur_prg[0] = nullptr;
+    blur_prg[1] = nullptr;
+  }
+
+
+  if (ssao != NO_SSAO) {
+    gl::shader ssao_fsh(gl::shader::FRAGMENT), ssao_blur_x(gl::shader::FRAGMENT), ssao_blur_y(gl::shader::FRAGMENT), ssao_apply_fsh(gl::shader::FRAGMENT);
+
+    ssao_fsh.load(find_resource_file(ssao == HQ_SSAO ? "ssao_frag.glsl" : "ssao_lq_frag.glsl").c_str());
+    ssao_blur_x.load(find_resource_file("ssao_blur_x_frag.glsl").c_str());
+    ssao_blur_y.load(find_resource_file("ssao_blur_y_frag.glsl").c_str());
+    ssao_apply_fsh.load(find_resource_file("ssao_apply_frag.glsl").c_str());
+
+    if (!ssao_fsh.compile() || !ssao_blur_x.compile() || !ssao_blur_y.compile() || !ssao_apply_fsh.compile()) {
+      throw std::runtime_error("Could not compile SSAO shaders");
+    }
+
+    for (std::shared_ptr<gl::program> *prg: {&ssao_prg, &ssao_blur_prg[0], &ssao_blur_prg[1], &ssao_apply_prg}) {
+      *prg = std::make_shared<gl::program>();
+
+      **prg << vsh;
+      **prg << (prg == &ssao_prg         ? ssao_fsh :
+                prg == &ssao_apply_prg   ? ssao_apply_fsh :
+                prg == &ssao_blur_prg[0] ? ssao_blur_x :
+                                           ssao_blur_y);
+
+      (*prg)->bind_attrib("in_pos", 0);
+
+      if (prg == &ssao_apply_prg) {
+        (*prg)->bind_frag("out_mi", 0);
+        (*prg)->bind_frag("out_hi", 1);
+      } else {
+        (*prg)->bind_frag("out_color", 0);
+      }
+
+      if (!(*prg)->link()) {
+        throw std::runtime_error("Could not link SSAO program");
+      }
+    }
+  } else {
+    ssao_prg = nullptr;
+    ssao_blur_prg[0] = nullptr;
+    ssao_blur_prg[1] = nullptr;
+    ssao_apply_prg = nullptr;
   }
 
 
@@ -216,7 +255,11 @@ void GlRenderer::init_with_context(void)
 
   bitmap_font = std::make_shared<gl::texture>(find_resource_file("font.png").c_str());
 
-  ssao_noise = std::make_shared<gl::texture>(find_resource_file("ssao-noise.png").c_str());
+  if (ssao != NO_SSAO) {
+    ssao_noise = std::make_shared<gl::texture>(find_resource_file("ssao-noise.png").c_str());
+  } else {
+    ssao_noise = nullptr;
+  }
 
 
   fb_vertices = std::make_shared<gl::vertex_array>();
@@ -234,7 +277,9 @@ void GlRenderer::init_with_context(void)
 
 void GlRenderer::visualize_model( GlutWindow& w )
 {
-  if (bloom_blur_passes) {
+  const gl::texture *color_mi, *color_hi;
+
+  if (has_bloom()) {
     // clear normal color texture with white
 
     fb->mask(1);
@@ -256,11 +301,17 @@ void GlRenderer::visualize_model( GlutWindow& w )
 
     fb->unmask(0);
     fb->bind();
+
+    color_mi = &(*fb)[0];
+    color_hi = &(*fb)[1];
   } else {
     gl::framebuffer::unbind();
 
     glClearColor(.7f, .7f, .7f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    color_mi = nullptr;
+    color_hi = nullptr;
   }
 
   glViewport(0, 0, width, height);
@@ -332,9 +383,11 @@ void GlRenderer::visualize_model( GlutWindow& w )
   }
 
 
-  const gl::texture *color_mi = &(*fb)[0], *color_hi = &(*fb)[1];
+  if (ssao != NO_SSAO) {
+    if (ssao == LQ_SSAO) {
+      glViewport(0, 0, width / 2, height / 2);
+    }
 
-  if (ssao) {
     ssao_prg->use();
     ssao_fb->bind();
 
@@ -351,7 +404,7 @@ void GlRenderer::visualize_model( GlutWindow& w )
 
 
     const gl::texture *input_tex = &(*ssao_fb)[0];
-    for (int i = 0, cur_fb = 0; i < 4; i++, cur_fb ^= 1) {
+    for (int i = 0, cur_fb = 0; i < (ssao == HQ_SSAO ? 4 : 2); i++, cur_fb ^= 1) {
       ssao_blur_prg[cur_fb]->use();
       ssao_blur_fbs[cur_fb]->bind();
 
@@ -368,6 +421,8 @@ void GlRenderer::visualize_model( GlutWindow& w )
       input_tex = &(*ssao_blur_fbs[cur_fb])[0];
     }
 
+
+    glViewport(0, 0, width, height);
 
     ssao_apply_prg->use();
     ssao_output_fb->bind();
@@ -507,13 +562,23 @@ void GlRenderer::resize(GlutWindow &win)
   width = win.width();
   height = win.height();
 
-  fb->resize(width, height);
-  ssao_fb->resize(width, height);
-  ssao_blur_fbs[0]->resize(width, height);
-  ssao_blur_fbs[1]->resize(width, height);
-  ssao_output_fb->resize(width, height);
-  blur_fbs[0]->resize(width / 2, height / 2);
-  blur_fbs[1]->resize(width / 2, height / 2);
+  if (has_bloom()) {
+    fb->resize(width, height);
+    blur_fbs[0]->resize(width / 2, height / 2);
+    blur_fbs[1]->resize(width / 2, height / 2);
+  }
+
+  if (ssao == HQ_SSAO) {
+    ssao_fb->resize(width, height);
+    ssao_blur_fbs[0]->resize(width, height);
+    ssao_blur_fbs[1]->resize(width, height);
+    ssao_output_fb->resize(width, height);
+  } else if (ssao == LQ_SSAO) {
+    ssao_fb->resize(width / 2, height / 2);
+    ssao_blur_fbs[0]->resize(width / 2, height / 2);
+    ssao_blur_fbs[1]->resize(width / 2, height / 2);
+    ssao_output_fb->resize(width, height);
+  }
 
   proj = mat4::projection(static_cast<float>(M_PI) / 3.f, static_cast<float>(width) / height, 1.f, 1000.f);
 

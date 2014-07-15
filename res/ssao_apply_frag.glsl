@@ -9,7 +9,7 @@ uniform sampler2D fb_mi, fb_hi, ssao, depth_tex;
 
 void main(void)
 {
-  float ssao_val = pow(min(texture(ssao, vf_pos).r, 0.4) / 0.4, 1.0);
+  float ssao_val = (clamp(texture(ssao, vf_pos).r, 0.1, 0.4) - 0.1) / 0.3;
   // somehow get fog into this thing
   ssao_val = mix(ssao_val, 1.0, smoothstep(0.995, 0.999, texture(depth_tex, vf_pos).r));
 
