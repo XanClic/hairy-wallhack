@@ -17,7 +17,7 @@ static const scalar_type add_box_interval = 2.f;
 static const int hit_extra_points = 42;
 
 static const scalar_type off_force_mult = 1.f;
-static const scalar_type off_force_exp = 5.f;
+static scalar_type off_force_exp = 5.f;
 
 
 // I don't even know why we have all those namespaces
@@ -201,6 +201,7 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
               // really dislikes frequent STATIC_DRAW updates (the libGL part
               // crashes)
               paddle->scale() *= .3f;
+              off_force_exp *= 2.f;
               xt = Explosion::BAD_POWER_UP_COLLECTED;
               break;
 
@@ -277,6 +278,14 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
     }
   } else {
     l.game_model()->gameSpeed() = .3f;
+  }
+
+  if (off_force_exp > 5.f) {
+    off_force_exp *= exp(-timestep_sec / 10.f);
+
+    if (off_force_exp < 5.f) {
+      off_force_exp = 5.f;
+    }
   }
 
   return true;
