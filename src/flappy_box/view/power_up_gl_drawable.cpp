@@ -82,6 +82,9 @@ PowerUpGlDrawable::PowerUpGlDrawable(const std::shared_ptr<const PowerUp> &pu):
   }
 
   power_up_va = obj.sections.front().make_vertex_array(0, -1, 1);
+
+
+  resources_valid = true;
 }
 
 
