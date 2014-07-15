@@ -29,5 +29,5 @@ void main(void)
     }
   }
 
-  out_color = vec4(shadow.rrr, 1.0);
+  out_color = vec4(vec3(shadow), 1.0);
 }
