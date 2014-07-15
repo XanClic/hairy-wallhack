@@ -10,7 +10,7 @@ uniform float strip_min_y, strip_height, base_alpha;
 
 void main(void)
 {
-  float alpha = sin(3.141 * (vf_position.y - strip_min_y) / strip_height);
+  float alpha = 0.5 * sin(3.141 * (vf_position.y - strip_min_y) / strip_height);
 
   // Now THIS looks hot
   out_mi = vec4(ambient, base_alpha * alpha);

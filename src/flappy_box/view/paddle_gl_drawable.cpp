@@ -297,13 +297,13 @@ void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &)
   for (int v = 0; v < vortex_cnt; v++) {
     for (int s = vortex_line_len - 1; s > 0; s--) {
       vortex_dat[v][s][0] = vortex_dat[v][s - 1][0] + vec3_type(0.f, _model->relativeFanPower() * timestep_sec * vortex_speed, 0.f);
-      vortex_dat[v][s][1] = vortex_dat[v][s][0] + (vortex_dat[v][s - 1][1] - vortex_dat[v][s - 1][0]) * (1.f + .075f * powf(_model->relativeFanPower(), .5f));
+      vortex_dat[v][s][1] = vortex_dat[v][s][0] + (vortex_dat[v][s - 1][1] - vortex_dat[v][s - 1][0]) * (1.f + timestep_sec * 4.5f * powf(_model->relativeFanPower(), .5f));
     }
 
     float a = 2.f * static_cast<float>(M_PI) * v / vortex_cnt - blades_ang;
 
     vortex_dat[v][0][0] = _model->position();
-    vortex_dat[v][0][1] = _model->position() + _model->scale() * vec3((r0 - r1) * cosf(a), 1.5f * r1, (r0 - r1) * sinf(a));
+    vortex_dat[v][0][1] = _model->position() + _model->scale() * vec3((r0 - r1) * cosf(a), 0.f, (r0 - r1) * sinf(a));
 
     vec3 *vd = static_cast<vec3 *>(vortex_vas[v].attrib(0)->map());
     for (int s = 0; s < vortex_line_len; s++) {
@@ -318,7 +318,7 @@ void PaddleGlDrawable::visualize(GlRenderer &r, GlutWindow &)
     vortex_vas[v].attrib(0)->unmap();
 
     vortex_prg->uniform<float>("strip_min_y") = vortex_dat[v][0][1].y();
-    vortex_prg->uniform<float>("strip_height") = vortex_dat[v][vortex_line_len - 1][1].y() - vortex_dat[v][0][1].y();
+    vortex_prg->uniform<float>("strip_height") = _model->maxPosition().y() - vortex_dat[v][0][1].y();
 
     vortex_vas[v].draw(GL_TRIANGLE_STRIP);
   }

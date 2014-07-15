@@ -6,7 +6,7 @@
 
 static const scalar_type player_accel_scale = 1000.f;
 static const scalar_type accel_damping = .0f;
-static const scalar_type vlcty_damping = .9f;
+static const scalar_type vlcty_damping = .01f;
 
 
 using namespace controller;
@@ -28,9 +28,9 @@ bool PaddleLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt
     _model->playerControl().x() = evt.key_state == InputEventHandler::keyboard_event::KEY_DOWN ? -1.f : 0.f;
   }
 
-  _model->acceleration() = _model->acceleration() * accel_damping + _model->playerControl() * player_accel_scale;
+  _model->acceleration() = _model->acceleration() * powf(accel_damping, timestep_sec) + _model->playerControl() * player_accel_scale;
 
-  _model->velocity() = _model->velocity() * vlcty_damping + _model->acceleration() * timestep_sec;
+  _model->velocity() = _model->velocity() * powf(vlcty_damping, timestep_sec) + _model->acceleration() * timestep_sec;
   if (_model->velocity().length() > _model->maxVelocity()) {
     _model->velocity() *= _model->maxVelocity() / _model->velocity().length();
   }
@@ -39,7 +39,7 @@ bool PaddleLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt
   for (int i = 0; i < 3; i++) {
     if (fabs(_model->position()[i]) > _model->maxPosition()[i]) {
       _model->position()[i] = copysign(_model->maxPosition()[i], _model->position()[i]);
-      _model->velocity()[i] *= -vlcty_damping; // could've been just -1.f here, but the task says "do it just like 5.2.1"
+      _model->velocity()[i] *= -1.f;
     }
   }
 
