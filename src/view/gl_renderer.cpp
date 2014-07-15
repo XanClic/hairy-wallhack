@@ -346,17 +346,13 @@ void GlRenderer::visualize_model( GlutWindow& w )
     }
   }
 
-  // since the paddle has a solid part, draw it first (and hope for the best)
-  if (paddle) {
-    paddle->visualize(*this, w);
-  }
 
-
-  // Actually, SSAO calculation needs to be done before the vortex. But this
-  // engine design is dumb as hell (as everyone knew from the start, but hey),
-  // so we can't because vortex and paddle aren't seperable. Great.
-  // With SSAO here, the paddle is used for SSAO calculations, but the vortex
-  // is hidden behind SSAO shadows. GREAT!
+  // SSAO calculation needs to be done before the vortex. But this engine design
+  // is dumb as hell (as everyone knew from the start, but hey), so we can't do
+  // that without removing the paddle from SSAO calculations (because vortex and
+  // paddle arent' seperable. Great.
+  // Lucky for us, the paddle basically is the light source, so not having an
+  // SSAO shadow there won't hurt too much.
   if (ssao != NO_SSAO) {
     if (ssao == LQ_SSAO) {
       glViewport(0, 0, width / 2, height / 2);
@@ -370,7 +366,9 @@ void GlRenderer::visualize_model( GlutWindow& w )
 
     ssao_prg->uniform<gl::texture>("depth_tex") = fb->depth();
     ssao_prg->uniform<gl::texture>("noise_tex") = *ssao_noise;
-    ssao_prg->uniform<vec2>("epsilon") = vec2(1.f / width, 1.f / height);;
+    ssao_prg->uniform<vec2>("epsilon") = vec2(1.f / width, 1.f / height);
+    ssao_prg->uniform<mat4>("proj") = proj;
+    ssao_prg->uniform<mat4>("inv_proj") = proj.inverse();
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -423,7 +421,14 @@ void GlRenderer::visualize_model( GlutWindow& w )
   }
 
 
-  // Draw immaterial stuff which is irrelevant for SSAO
+  // Draw immaterial stuff which is irrelevant for SSAO (and the paddle)
+
+
+  // since the paddle has a solid part, draw it first (and hope for the best)
+  if (paddle) {
+    paddle->visualize(*this, w);
+  }
+
   for (const std::shared_ptr<model::GameObject> &o: game_model()->objects()) {
     std::shared_ptr<Drawable> drawable = o->getData<Drawable>();
 
