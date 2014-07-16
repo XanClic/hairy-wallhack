@@ -33,7 +33,7 @@ BoxGlDrawable::BoxGlDrawable(const std::shared_ptr<Box> &b):
   }
 
 
-  gl::obj box = gl::load_obj(find_resource_file("box.obj").c_str());
+  gl::obj box = gl::load_obj(find_resource_file(drop ? "drop.obj" : "box.obj").c_str());
 
   // Fit into 1x1x1 box
   float scale = HUGE_VALF;
@@ -60,8 +60,8 @@ BoxGlDrawable::BoxGlDrawable(const std::shared_ptr<Box> &b):
   gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT), fog_fsh(gl::shader::FRAGMENT);
 
   vsh.load(find_resource_file("box_vert.glsl").c_str());
-  fsh.load(find_resource_file("box_frag.glsl").c_str());
-  fog_fsh.load(find_resource_file("box_fog_frag.glsl").c_str());
+  fsh.load(find_resource_file(drop ? "drop_frag.glsl" : "box_frag.glsl").c_str());
+  fog_fsh.load(find_resource_file(drop ? "drop_fog_frag.glsl" : "box_fog_frag.glsl").c_str());
 
   if (!vsh.compile() || !fsh.compile() || !fog_fsh.compile()) {
     throw std::runtime_error("Could not compile box shaders");
@@ -105,8 +105,13 @@ void BoxGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 {
   mat4 mv = mat4::identity();
   mv.translate(_model->position() + vec3(0.f, 0.f, -10.f / lifetime));
+  if (drop) {
+    vec3 vlcty = _model->velocity() / 200.f;
+    mv.scale(_model->size() * (vec3(1.f, 1.f, 1.f) + vec3(fabsf(vlcty.x()), fabsf(vlcty.y()), fabsf(vlcty.z()))));
+  } else {
+    mv.scale(_model->size() * vec3(1.f, 1.f, 1.f));
+  }
   mv.rotate(_model->angle(), vec3(0.f, 0.f, 1.f));
-  mv.scale(vec3(_model->size(), _model->size(), _model->size()));
 
   gl::program *prg = lifetime > 1.f ? box_prg : box_fog_prg;
 
@@ -117,12 +122,15 @@ void BoxGlDrawable::visualize(GlRenderer &r, GlutWindow &)
 
   prg->uniform<vec3>("light_pos") = r.light_position();
 
+  if (drop) {
+    prg->uniform<vec3>("cam_pos") = r.camera_position();
+  }
+
   for (bool lines: {false, true}) {
     if (lines) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       glLineWidth(5.f);
     }
-
     prg->uniform<float>("enlightenment") = (_model->maxPosition().y() - _model->position().y()) / 10.f + 1.f;
 
     for (size_t i = 0; i < box_sections.size(); i++) {
@@ -131,13 +139,19 @@ void BoxGlDrawable::visualize(GlRenderer &r, GlutWindow &)
         prg->uniform<gl::texture>("tex") = *box_sections[i].material.tex;
       }
       prg->uniform<vec3>("diffuse_base") = box_sections[i].material.diffuse;
-      prg->uniform<vec3>("ambient") = lines ? vec3(box_sections[i].material.ambient) : vec3(0.f, 0.f, 0.f);
+      prg->uniform<vec3>("ambient") = lines || drop ? vec3(box_sections[i].material.ambient) : vec3(0.f, 0.f, 0.f);
 
       box_vas[i]->draw(GL_TRIANGLES);
     }
+
+    if (drop) {
+      break;
+    }
   }
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  if (!drop) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  }
 
   lifetime += r.game_model()->timestep().count();
 }

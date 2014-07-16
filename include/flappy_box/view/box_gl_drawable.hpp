@@ -22,6 +22,7 @@ namespace flappy_box
         const model::Box *_model;
         scalar_type lifetime = 0.f;
 
+        static const bool drop = true;
     }; // BoxGlDrawable
   }
 }
