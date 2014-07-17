@@ -312,7 +312,7 @@ void GlRenderer::visualize_model( GlutWindow& w )
   } else {
     gl::framebuffer::unbind();
 
-    glClearColor(.7f, .7f, .7f, 1.f);
+    glClearColor(.8f, .8f, .8f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     color_mi = nullptr;
