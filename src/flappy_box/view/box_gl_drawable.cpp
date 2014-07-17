@@ -107,7 +107,8 @@ void BoxGlDrawable::visualize(GlRenderer &r, GlutWindow &)
   mv.translate(_model->position() + vec3(0.f, 0.f, -10.f / lifetime));
   if (drop) {
     vec3 vlcty = _model->velocity() / 200.f;
-    mv.scale(_model->size() * (vec3(1.f, 1.f, 1.f) + vec3(fabsf(vlcty.x()), fabsf(vlcty.y()), fabsf(vlcty.z()))));
+    //                        3^{1/2} (length of (1, 1, 1))
+    mv.scale(_model->size() * 1.73205f * (vec3(1.f, 1.f, 1.f) + vec3(fabsf(vlcty.x()), fabsf(vlcty.y()), fabsf(vlcty.z()))).normalized());
   } else {
     mv.scale(_model->size() * vec3(1.f, 1.f, 1.f));
   }
