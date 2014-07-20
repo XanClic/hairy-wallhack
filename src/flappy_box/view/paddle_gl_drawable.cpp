@@ -7,8 +7,6 @@
 #include <dake/helper/function.hpp>
 #include <dake/math/matrix.hpp>
 
-#include "resource_finder.hpp"
-
 #include "flappy_box/model/paddle.hpp"
 #include "flappy_box/view/paddle_gl_drawable.hpp"
 
@@ -53,19 +51,7 @@ PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
   }
 
 
-  gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
-
-  vsh.load(find_resource_file("paddle_vert.glsl").c_str());
-  fsh.load(find_resource_file("paddle_frag.glsl").c_str());
-
-  if (!vsh.compile() || !fsh.compile()) {
-    throw std::runtime_error("Could not compile paddle shaders");
-  }
-
-  paddle_prg = new gl::program;
-
-  *paddle_prg << vsh;
-  *paddle_prg << fsh;
+  paddle_prg = new gl::program {gl::shader::vert("res/paddle_vert.glsl"), gl::shader::frag("res/paddle_frag.glsl")};
 
   paddle_prg->bind_attrib("in_position", 0);
   paddle_prg->bind_attrib("in_normal",   1);
@@ -73,36 +59,16 @@ PaddleGlDrawable::PaddleGlDrawable(const std::shared_ptr<const Paddle> &p):
   paddle_prg->bind_frag("out_mi", 0);
   paddle_prg->bind_frag("out_hi", 1);
 
-  if (!paddle_prg->link()) {
-    throw std::runtime_error("Could not link paddle program");
-  }
-
   // set constant uniform right away
   paddle_prg->uniform<vec3>("ambient") = vec3(0.f, 0.f, 0.f);
 
 
-  gl::shader vvsh(gl::shader::VERTEX), vfsh(gl::shader::FRAGMENT);
-
-  vvsh.load(find_resource_file("vortex_vert.glsl").c_str());
-  vfsh.load(find_resource_file("vortex_frag.glsl").c_str());
-
-  if (!vvsh.compile() || !vfsh.compile()) {
-    throw std::runtime_error("Could not compile vortex shaders");
-  }
-
-  vortex_prg = new gl::program;
-
-  *vortex_prg << vvsh;
-  *vortex_prg << vfsh;
+  vortex_prg = new gl::program {gl::shader::vert("res/vortex_vert.glsl"), gl::shader::frag("res/vortex_frag.glsl")};
 
   vortex_prg->bind_attrib("in_position", 0);
 
   vortex_prg->bind_frag("out_mi", 0);
   vortex_prg->bind_frag("out_hi", 1);
-
-  if (!vortex_prg->link()) {
-    throw std::runtime_error("Could not link vortex program");
-  }
 
   vortex_prg->uniform<vec3>("ambient") = vec3(1.f, .6f, .3f);
 

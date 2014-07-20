@@ -9,8 +9,6 @@
 #include <memory>
 #include <stdexcept>
 
-#include "resource_finder.hpp"
-
 #include "flappy_box/view/power_up_gl_drawable.hpp"
 
 
@@ -35,19 +33,7 @@ PowerUpGlDrawable::PowerUpGlDrawable(const std::shared_ptr<const PowerUp> &pu):
   }
 
 
-  gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
-
-  vsh.load(find_resource_file("power_up_vert.glsl").c_str());
-  fsh.load(find_resource_file("power_up_frag.glsl").c_str());
-
-  if (!vsh.compile() || !fsh.compile()) {
-    throw std::runtime_error("Could not compile power-up shaders");
-  }
-
-  power_up_prg = new gl::program;
-
-  *power_up_prg << vsh;
-  *power_up_prg << fsh;
+  power_up_prg = new gl::program({gl::shader::vert("res/power_up_vert.glsl"), gl::shader::frag("res/power_up_frag.glsl")});
 
   power_up_prg->bind_attrib("in_position", 0);
   power_up_prg->bind_attrib("in_normal",   1);
@@ -55,12 +41,8 @@ PowerUpGlDrawable::PowerUpGlDrawable(const std::shared_ptr<const PowerUp> &pu):
   power_up_prg->bind_frag("out_mi", 0);
   power_up_prg->bind_frag("out_hi", 1);
 
-  if (!power_up_prg->link()) {
-    throw std::runtime_error("Could not link power-up program");
-  }
 
-
-  gl::obj obj = gl::load_obj(find_resource_file("power_up.obj").c_str());
+  gl::obj obj = gl::load_obj("res/power_up.obj");
 
   if (obj.sections.size() != 1) {
     throw std::runtime_error("Could not load power-up mesh: Has more than one material");

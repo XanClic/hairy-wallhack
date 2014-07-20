@@ -7,8 +7,6 @@
 #include <memory>
 #include <stdexcept>
 
-#include "resource_finder.hpp"
-
 #include "flappy_box/view/explosion_gl_drawable.hpp"
 
 
@@ -44,21 +42,7 @@ ExplosionGlDrawable::ExplosionGlDrawable(const std::shared_ptr<const Explosion> 
   }
 
 
-  gl::shader vsh(gl::shader::VERTEX), gsh(gl::shader::GEOMETRY), fsh(gl::shader::FRAGMENT);
-
-  vsh.load(find_resource_file("particle_vert.glsl").c_str());
-  gsh.load(find_resource_file("particle_geom.glsl").c_str());
-  fsh.load(find_resource_file("particle_frag.glsl").c_str());
-
-  if (!vsh.compile() || !gsh.compile() || !fsh.compile()) {
-    throw std::runtime_error("Could not compile particle shaders");
-  }
-
-  particle_prg = new gl::program;
-
-  *particle_prg << vsh;
-  *particle_prg << gsh;
-  *particle_prg << fsh;
+  particle_prg = new gl::program {gl::shader::vert("res/particle_vert.glsl"), gl::shader::geom("res/particle_geom.glsl"), gl::shader::frag("res/particle_frag.glsl")};
 
   particle_prg->bind_attrib("in_position",     0);
   particle_prg->bind_attrib("in_velocity",     1);
@@ -67,10 +51,6 @@ ExplosionGlDrawable::ExplosionGlDrawable(const std::shared_ptr<const Explosion> 
 
   particle_prg->bind_frag("out_mi", 0);
   particle_prg->bind_frag("out_hi", 1);
-
-  if (!particle_prg->link()) {
-    throw std::runtime_error("Could not link particle program");
-  }
 
 
   resources_valid = true;

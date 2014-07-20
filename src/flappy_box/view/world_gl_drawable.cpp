@@ -6,8 +6,6 @@
 #include <cstdio>
 #include <stdexcept>
 
-#include "resource_finder.hpp"
-
 #include "flappy_box/view/world_gl_drawable.hpp"
 
 
@@ -23,7 +21,7 @@ static gl::program *world_prg;
 WorldGlDrawable::WorldGlDrawable(const std::shared_ptr<const flappy_box::model::World> &w):
   _model(w)
 {
-  gl::obj world = gl::load_obj(find_resource_file("world.obj").c_str());
+  gl::obj world = gl::load_obj("res/world.obj");
 
   if (world.sections.size() != 1) {
     throw std::runtime_error("Could not load world.obj: Mesh does not have exactly one section");
@@ -37,29 +35,13 @@ WorldGlDrawable::WorldGlDrawable(const std::shared_ptr<const flappy_box::model::
   }
 
 
-  gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT);
-
-  vsh.load(find_resource_file("world_vert.glsl").c_str());
-  fsh.load(find_resource_file("world_frag.glsl").c_str());
-
-  if (!vsh.compile() || !fsh.compile()) {
-    throw std::runtime_error("Could not compile world shaders");
-  }
-
-  world_prg = new gl::program;
-
-  *world_prg << vsh;
-  *world_prg << fsh;
+  world_prg = new gl::program {gl::shader::vert("res/world_vert.glsl"), gl::shader::frag("res/world_frag.glsl")};
 
   world_prg->bind_attrib("in_position", 0);
   world_prg->bind_attrib("in_normal",   1);
 
   world_prg->bind_frag("out_mi", 0);
   world_prg->bind_frag("out_hi", 1);
-
-  if (!world_prg->link()) {
-    throw std::runtime_error("Could not link world program");
-  }
 }
 
 

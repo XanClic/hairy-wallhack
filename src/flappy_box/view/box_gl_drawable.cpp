@@ -3,8 +3,6 @@
 #include <dake/gl/shader.hpp>
 #include <dake/gl/vertex_array.hpp>
 
-#include "resource_finder.hpp"
-
 #include "flappy_box/view/box_gl_drawable.hpp"
 
 #include <algorithm>
@@ -33,7 +31,7 @@ BoxGlDrawable::BoxGlDrawable(const std::shared_ptr<Box> &b):
   }
 
 
-  gl::obj box = gl::load_obj(find_resource_file(drop ? "drop.obj" : "box.obj").c_str());
+  gl::obj box = gl::load_obj(drop ? "res/drop.obj" : "res/box.obj");
 
   // Fit into 1x1x1 box
   float scale = HUGE_VALF;
@@ -57,24 +55,13 @@ BoxGlDrawable::BoxGlDrawable(const std::shared_ptr<Box> &b):
   box_sections = std::move(box.sections);
 
 
-  gl::shader vsh(gl::shader::VERTEX), fsh(gl::shader::FRAGMENT), fog_fsh(gl::shader::FRAGMENT);
+  gl::shader vsh(gl::shader::VERTEX, "res/box_vert.glsl");
 
-  vsh.load(find_resource_file("box_vert.glsl").c_str());
-  fsh.load(find_resource_file(drop ? "drop_frag.glsl" : "box_frag.glsl").c_str());
-  fog_fsh.load(find_resource_file(drop ? "drop_fog_frag.glsl" : "box_fog_frag.glsl").c_str());
+  box_prg     = new gl::program {gl::shader::frag(drop ? "res/drop_frag.glsl"     : "res/box_frag.glsl")};
+  box_fog_prg = new gl::program {gl::shader::frag(drop ? "res/drop_fog_frag.glsl" : "res/box_fog_frag.glsl")};
 
-  if (!vsh.compile() || !fsh.compile() || !fog_fsh.compile()) {
-    throw std::runtime_error("Could not compile box shaders");
-  }
-
-  box_prg = new gl::program;
-  box_fog_prg = new gl::program;
-
-  *box_prg << vsh;
-  *box_prg << fsh;
-
+  *box_prg     << vsh;
   *box_fog_prg << vsh;
-  *box_fog_prg << fog_fsh;
 
   box_prg->bind_attrib("in_position",  0);
   box_prg->bind_attrib("in_tex_coord", 1);
@@ -89,10 +76,6 @@ BoxGlDrawable::BoxGlDrawable(const std::shared_ptr<Box> &b):
 
   box_fog_prg->bind_frag("out_mi", 0);
   box_fog_prg->bind_frag("out_hi", 1);
-
-  if (!box_prg->link() || !box_fog_prg->link()) {
-    throw std::runtime_error("Could not link box programs");
-  }
 
 
   resources_valid = true;
