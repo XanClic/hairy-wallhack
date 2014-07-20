@@ -11,7 +11,6 @@
 #include <cstdio>
 
 #include "math.hpp"
-#include "resource_finder.hpp"
 
 #include "view/gl_renderer.hpp"
 #include "view/glut_window.hpp"
@@ -138,52 +137,22 @@ void GlRenderer::init_with_context(void)
   }
 
 
-  gl::shader vsh(gl::shader::VERTEX);
+  gl::shader vsh(gl::shader::VERTEX, "res/fb_vert.glsl");
 
   if (has_bloom()) {
-    gl::shader fsh(gl::shader::FRAGMENT);
-
-    vsh.load(find_resource_file("fb_vert.glsl").c_str());
-    fsh.load(find_resource_file("fb_combine_frag.glsl").c_str());
-
-    if (!vsh.compile() || !fsh.compile()) {
-      throw std::runtime_error("Could not compile FB display shaders");
-    }
-
-    fb_prg = std::make_shared<gl::program>();
-
+    fb_prg = std::shared_ptr<gl::program>(new gl::program {gl::shader::frag("res/fb_combine_frag.glsl")});
     *fb_prg << vsh;
-    *fb_prg << fsh;
 
     fb_prg->bind_attrib("in_pos", 0);
     fb_prg->bind_frag("out_color", 0);
 
-    if (!fb_prg->link()) {
-      throw std::runtime_error("Could not link FB display program");
-    }
-
-
-    gl::shader blur_x(gl::shader::FRAGMENT), blur_y(gl::shader::FRAGMENT);
-
-    blur_x.load(find_resource_file("fb_blur_x_frag.glsl").c_str());
-    blur_y.load(find_resource_file("fb_blur_y_frag.glsl").c_str());
-
-    if (!blur_x.compile() || !blur_y.compile()) {
-      throw std::runtime_error("Could not compile blur shaders");
-    }
 
     for (int i: {0, 1}) {
-      blur_prg[i] = std::make_shared<gl::program>();
-
+      blur_prg[i] = std::shared_ptr<gl::program>(new gl::program {gl::shader::frag(i ? "res/fb_blur_y_frag.glsl" : "res/fb_blur_x_frag.glsl")});
       *blur_prg[i] << vsh;
-      *blur_prg[i] << (i ? blur_y : blur_x);
 
       blur_prg[i]->bind_attrib("in_pos", 0);
       blur_prg[i]->bind_frag("out_color", 0);
-
-      if (!blur_prg[i]->link()) {
-        throw std::runtime_error("Could not link blur program");
-      }
     }
   } else {
     fb_prg = nullptr;
@@ -193,25 +162,14 @@ void GlRenderer::init_with_context(void)
 
 
   if (ssao != NO_SSAO) {
-    gl::shader ssao_fsh(gl::shader::FRAGMENT), ssao_blur_x(gl::shader::FRAGMENT), ssao_blur_y(gl::shader::FRAGMENT), ssao_apply_fsh(gl::shader::FRAGMENT);
-
-    ssao_fsh.load(find_resource_file(ssao == HQ_SSAO ? "ssao_frag.glsl" : "ssao_lq_frag.glsl").c_str());
-    ssao_blur_x.load(find_resource_file("ssao_blur_x_frag.glsl").c_str());
-    ssao_blur_y.load(find_resource_file("ssao_blur_y_frag.glsl").c_str());
-    ssao_apply_fsh.load(find_resource_file("ssao_apply_frag.glsl").c_str());
-
-    if (!ssao_fsh.compile() || !ssao_blur_x.compile() || !ssao_blur_y.compile() || !ssao_apply_fsh.compile()) {
-      throw std::runtime_error("Could not compile SSAO shaders");
-    }
-
     for (std::shared_ptr<gl::program> *prg: {&ssao_prg, &ssao_blur_prg[0], &ssao_blur_prg[1], &ssao_apply_prg}) {
       *prg = std::make_shared<gl::program>();
 
       **prg << vsh;
-      **prg << (prg == &ssao_prg         ? ssao_fsh :
-                prg == &ssao_apply_prg   ? ssao_apply_fsh :
-                prg == &ssao_blur_prg[0] ? ssao_blur_x :
-                                           ssao_blur_y);
+      **prg << (prg == &ssao_prg         ? gl::shader::frag(ssao == HQ_SSAO ? "res/ssao_frag.glsl" : "ssao_lq_frag.glsl") :
+                prg == &ssao_apply_prg   ? gl::shader::frag("res/ssao_apply_frag.glsl") :
+                prg == &ssao_blur_prg[0] ? gl::shader::frag("res/ssao_blur_x_frag.glsl") :
+                                           gl::shader::frag("res/ssao_blur_y_frag.glsl"));
 
       (*prg)->bind_attrib("in_pos", 0);
 
@@ -220,10 +178,6 @@ void GlRenderer::init_with_context(void)
         (*prg)->bind_frag("out_hi", 1);
       } else {
         (*prg)->bind_frag("out_color", 0);
-      }
-
-      if (!(*prg)->link()) {
-        throw std::runtime_error("Could not link SSAO program");
       }
     }
   } else {
@@ -234,34 +188,18 @@ void GlRenderer::init_with_context(void)
   }
 
 
-  gl::shader char_vsh(gl::shader::VERTEX), char_fsh(gl::shader::FRAGMENT);
-
-  char_vsh.load(find_resource_file("char_vert.glsl").c_str());
-  char_fsh.load(find_resource_file("char_frag.glsl").c_str());
-
-  if (!char_vsh.compile() || !char_fsh.compile()) {
-    throw std::runtime_error("Could not compile character rendering shaders");
-  }
-
-  char_prg = std::make_shared<gl::program>();
-
-  *char_prg << char_vsh;
-  *char_prg << char_fsh;
+  char_prg = std::shared_ptr<gl::program>(new gl::program {gl::shader::vert("res/char_vert.glsl"), gl::shader::frag("res/char_frag.glsl")});
 
   char_prg->bind_attrib("in_pos", 0);
 
   char_prg->bind_frag("out_mi", 0);
   char_prg->bind_frag("out_hi", 1);
 
-  if (!char_prg->link()) {
-    throw std::runtime_error("Could not link character rendering program");
-  }
 
-
-  bitmap_font = std::make_shared<gl::texture>(find_resource_file("font.png").c_str());
+  bitmap_font = std::make_shared<gl::texture>("res/font.png");
 
   if (ssao != NO_SSAO) {
-    ssao_noise = std::make_shared<gl::texture>(find_resource_file("ssao-noise.png").c_str());
+    ssao_noise = std::make_shared<gl::texture>("res/ssao-noise.png");
   } else {
     ssao_noise = nullptr;
   }
