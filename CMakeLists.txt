@@ -48,10 +48,16 @@ add_definitions(${OPENAL_DEFINITIONS})
 #########################################################
 # FIND ALUT
 #########################################################
- find_package(ALUT REQUIRED)
- include_directories(${ALUT_INCLUDE_DIRS})
- link_directories(${ALUT_LIBRARY_DIRS})
- add_definitions(${ALUT_DEFINITIONS})
+if(MINGW)
+    find_package(ALUT) # MinGW does not find the headers; but for
+                       # cross-compilation, we don't need a specific
+                       # directory anyway
+else(MINGW)
+    find_package(ALUT REQUIRED)
+endif(MINGW)
+include_directories(${ALUT_INCLUDE_DIRS})
+link_directories(${ALUT_LIBRARY_DIRS})
+add_definitions(${ALUT_DEFINITIONS})
 
 # cool dake stuff
 
@@ -61,7 +67,7 @@ ExternalProject_Add(
     GIT_TAG origin/master
     SOURCE_DIR dake
     CMAKE_COMMAND true
-    BUILD_COMMAND make
+    BUILD_COMMAND CXX=${CMAKE_CXX_COMPILER} AR=${CMAKE_AR} make
     BINARY_DIR dake
     INSTALL_COMMAND true
 )

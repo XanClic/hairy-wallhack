@@ -85,8 +85,8 @@ bool WorldLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt)
   }
 
 
-  if (isnan(next_powerup_timer) || (next_powerup_timer <= 0.f)) {
-    if (paddle && !isnan(next_powerup_timer)) {
+  if (std::isnan(next_powerup_timer) || (next_powerup_timer <= 0.f)) {
+    if (paddle && !std::isnan(next_powerup_timer)) {
       bool generate_bad = std::uniform_int_distribution<int>(0, 2)(rng) != 0;
       std::uniform_int_distribution<int> t_dist;
       if (generate_bad) {
