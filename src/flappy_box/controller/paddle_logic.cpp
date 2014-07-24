@@ -23,9 +23,17 @@ bool PaddleLogic::advance(Logic &l, const InputEventHandler::keyboard_event &evt
   scalar_type timestep_sec = l.game_model()->timestep().count();
 
   if (evt.special_key == GLUT_KEY_RIGHT) {
-    _model->playerControl().x() = evt.key_state == InputEventHandler::keyboard_event::KEY_DOWN ?  1.f : 0.f;
+    right_down = evt.key_state == InputEventHandler::keyboard_event::KEY_DOWN;
   } else if (evt.special_key == GLUT_KEY_LEFT) {
-    _model->playerControl().x() = evt.key_state == InputEventHandler::keyboard_event::KEY_DOWN ? -1.f : 0.f;
+    left_down = evt.key_state == InputEventHandler::keyboard_event::KEY_DOWN;
+  }
+
+  if (left_down == right_down) {
+    _model->playerControl().x() =  0.f;
+  } else if (left_down) {
+    _model->playerControl().x() = -1.f;
+  } else if (right_down) {
+    _model->playerControl().x() =  1.f;
   }
 
   _model->acceleration() = _model->acceleration() * powf(accel_damping, timestep_sec) + _model->playerControl() * player_accel_scale;

@@ -18,6 +18,7 @@ namespace flappy_box
 
       private:
         model::Paddle *_model;
+        bool left_down = false, right_down = false;
     };
   }
 }
