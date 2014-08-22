@@ -78,9 +78,10 @@ include_directories(${binary_dir}/include)
 link_directories(${binary_dir})
 
 find_package(PNG REQUIRED)
-include_directories(${PNG_INCLUDE_DIRS})
 link_directories(${PNG_LIBRARY_DIRS})
-add_definitions(${PNG_DEFINITIONS})
+
+find_package(JPEG REQUIRED)
+link_directories(${JPEG_LIBRARY_DIRS})
 
 #########################################################
 # EXECUTABLE AUDIOphile
@@ -127,7 +128,7 @@ add_executable( audiophile src/main.cpp
                            src/sound_provider.cpp
               )
 
-target_link_libraries( audiophile -ldake ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${OPENAL_LIBRARY} ${ALUT_LIBRARY} ${GLEW_LIBRARIES} ${PNG_LIBRARY} )
+target_link_libraries( audiophile -ldake ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${OPENAL_LIBRARY} ${ALUT_LIBRARY} ${GLEW_LIBRARIES} ${PNG_LIBRARY} ${JPEG_LIBRARY} )
 add_dependencies(audiophile dake)
 
 install(TARGETS audiophile RUNTIME DESTINATION bin)
