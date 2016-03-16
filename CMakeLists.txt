@@ -3,6 +3,7 @@ cmake_minimum_required( VERSION 2.8 )
 project(audiophile)
 
 include(ExternalProject)
+include(FindPkgConfig)
 
 include_directories( include )
 
@@ -59,6 +60,20 @@ include_directories(${ALUT_INCLUDE_DIRS})
 link_directories(${ALUT_LIBRARY_DIRS})
 add_definitions(${ALUT_DEFINITIONS})
 
+pkg_search_module(LIBEPOXY REQUIRED epoxy)
+include_directories(${LIBEPOXY_INCLUDE_DIRS})
+
+if (NOT TARGET_ARCHITECTURE)
+    set(MARCH -march=native)
+    set(MTUNE -mtune=native)
+elseif ("${TARGET_ARCHITECTURE}" STREQUAL "generic")
+    set(MARCH -march=x86-64)
+    set(MTUNE -mtune=generic)
+else ()
+    set(MARCH -march=${TARGET_ARCHITECTURE})
+    set(MTUNE -mtune=${TARGET_ARCHITECTURE})
+endif ()
+
 # cool dake stuff
 
 ExternalProject_Add(
@@ -67,7 +82,12 @@ ExternalProject_Add(
     GIT_TAG origin/master
     SOURCE_DIR dake
     CMAKE_COMMAND true
-    BUILD_COMMAND CXX=${CMAKE_CXX_COMPILER} AR=${CMAKE_AR} make
+    BUILD_COMMAND ${CMAKE_MAKE_PROGRAM}
+                  "CC=${CMAKE_C_COMPILER}"
+                  "CXX=${CMAKE_CXX_COMPILER}"
+                  "MARCH=${MARCH}"
+                  "MTUNE=${MTUNE}"
+                  libdake.a
     BINARY_DIR dake
     INSTALL_COMMAND true
 )
@@ -82,6 +102,9 @@ link_directories(${PNG_LIBRARY_DIRS})
 
 find_package(JPEG REQUIRED)
 link_directories(${JPEG_LIBRARY_DIRS})
+
+set(THREAD_CXXFLAGS -pthread)
+set(THREAD_LIBS pthread)
 
 #########################################################
 # EXECUTABLE AUDIOphile
@@ -128,7 +151,12 @@ add_executable( audiophile src/main.cpp
                            src/sound_provider.cpp
               )
 
-target_link_libraries( audiophile -ldake ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${OPENAL_LIBRARY} ${ALUT_LIBRARY} ${GLEW_LIBRARIES} ${PNG_LIBRARY} ${JPEG_LIBRARY} )
+target_link_libraries( audiophile -ldake ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${OPENAL_LIBRARY} ${ALUT_LIBRARY} ${GLEW_LIBRARIES} ${PNG_LIBRARY} ${JPEG_LIBRARY} txc_dxtn ${LIBEPOXY_LIBRARIES} ${THREAD_LIBS})
 add_dependencies(audiophile dake)
+
+set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -g2 -Wall -Wextra -Wshadow \
+                    ${MARCH} ${MTUNE} -fno-math-errno \
+                    -fomit-frame-pointer -flto ${THREAD_CXXFLAGS}")
+
 
 install(TARGETS audiophile RUNTIME DESTINATION bin)
